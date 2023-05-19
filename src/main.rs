@@ -1,4 +1,4 @@
-use components::me::Me;
+use components::card::Card;
 use sycamore::prelude::*;
 use sycamore_router::{HistoryIntegration, Route, Router};
 
@@ -21,8 +21,8 @@ fn main() {
                 integration=HistoryIntegration::new(),
                 view=|cx, route: &ReadSignal<AppRoutes>| {
                     let count = create_signal(cx, vec![1,2,3,4]);
-                    view! {cx,
-                        div(class="app min-h-screen bg-blue-400") {
+                    view! { cx,
+                        div(class="app min-h-screen bg-sky-400") {
                             div(class="content") {
                                 div(class="container mx-auto p-4"){
                                     div(class="flex") {
@@ -32,15 +32,10 @@ fn main() {
                                                     Keyed(
                                                         iterable=count,
                                                         view=|cx, x| view! { cx,
-                                                            div(class="border border-black rounded-md my-2 bg-amber-100"){
-                                                                article(class="p-1") {
-                                                                    Me(item=x){}
-                                                                }
-                                                            }
+                                                            Card(item=x){}
                                                         },
                                                         key=|x| *x,
                                                     )
-
                                                 }
                                             },
                                             AppRoutes::About => view!{cx,
