@@ -19,33 +19,44 @@ fn main() {
         view! { cx,
             Router(
                 integration=HistoryIntegration::new(),
-                view= move |cx, route: &ReadSignal<AppRoutes>| {
+                view=|cx, route: &ReadSignal<AppRoutes>| {
+                    let count = create_signal(cx, vec![1,2,3,4]);
                     view! {cx,
-                        div(class="app bg-indigo-300") {
-                            (match route.get().as_ref() {
-                                AppRoutes::Index => view! {cx,
-                                    div(class="container mx-auto px-4 py-4 columns-1"){
-                                        article() {
-                                            Me {}
-                                        }
-                                        article() {
-                                            Me {}
-                                        }
-                                        article() {
-                                            Me {}
-                                        }
+                        div(class="app min-h-screen bg-blue-400") {
+                            div(class="content") {
+                                div(class="container mx-auto p-4"){
+                                    div(class="flex") {
+                                        (match route.get().as_ref() {
+                                            AppRoutes::Index => view! {cx,
+                                                div(class="flex-col mx-auto"){
+                                                    Keyed(
+                                                        iterable=count,
+                                                        view=|cx, x| view! { cx,
+                                                            div(class="border border-black rounded-md my-2 bg-amber-100"){
+                                                                article(class="p-1") {
+                                                                    Me(item=x){}
+                                                                }
+                                                            }
+                                                        },
+                                                        key=|x| *x,
+                                                    )
+
+                                                }
+                                            },
+                                            AppRoutes::About => view!{cx,
+                                                article(class="flex flex-col justify-center items-center") {
+                                                    "This is the About page."
+                                                }
+                                            },
+                                            AppRoutes::NotFound => view! {cx,
+                                                "Well, you know, man, like whatever it is you are looking for ain't here. Dave's not here either."
+                                            }
+                                        })
                                     }
 
-                                },
-                                AppRoutes::About => view!{cx,
-                                    article(class="flex flex-col justify-center items-center") {
-                                        "This is the About page."
-                                    }
-                                },
-                                AppRoutes::NotFound => view! {cx,
-                                     "Well, you know, man, like whatever it is you are looking for ain't here. Dave's not here either."
                                 }
-                            })
+
+                            }
                         }
 
                     }
