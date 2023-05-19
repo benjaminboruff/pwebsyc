@@ -1,8 +1,6 @@
-use components::button::Button;
-use components::count::Count;
-use components::square::Square;
+use components::card::Card;
 use sycamore::prelude::*;
-use sycamore_router::{HistoryIntegration, Route, Router, RouterProps};
+use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
 
@@ -18,39 +16,42 @@ enum AppRoutes {
 
 fn main() {
     sycamore::render(|cx| {
-        let state = create_signal(cx, 0i32);
-        let update = create_ref(cx, |action| {
-            if action == 0 {
-                state.set(0);
-            } else {
-                state.set(*state.get() + action);
-            }
-        });
         view! { cx,
             Router(
                 integration=HistoryIntegration::new(),
-                view= move |cx, route: &ReadSignal<AppRoutes>| {
-                    view! {cx,
-                        div(class="app") {
-                            (match route.get().as_ref() {
-                                AppRoutes::Index => view! {cx,
-                                    article(class="flex flex-col justify-center items-center") {
-                                        Count(value=state)
-                                        header() {
-                                            Button(updater=update, action=-1)
-                                            Button(updater=update, action=0)
-                                            Button(updater=update, action=1)
-                                        }
-                                        Square(value=state)
+                view=|cx, route: &ReadSignal<AppRoutes>| {
+                    let count = create_signal(cx, vec![1,2,3,4]);
+                    view! { cx,
+                        div(class="app min-h-screen bg-sky-400") {
+                            div(class="content") {
+                                div(class="container mx-auto p-4"){
+                                    div(class="flex") {
+                                        (match route.get().as_ref() {
+                                            AppRoutes::Index => view! {cx,
+                                                div(class="flex-col mx-auto"){
+                                                    Keyed(
+                                                        iterable=count,
+                                                        view=|cx, x| view! { cx,
+                                                            Card(item=x){}
+                                                        },
+                                                        key=|x| *x,
+                                                    )
+                                                }
+                                            },
+                                            AppRoutes::About => view!{cx,
+                                                article(class="flex flex-col justify-center items-center") {
+                                                    "This is the About page."
+                                                }
+                                            },
+                                            AppRoutes::NotFound => view! {cx,
+                                                "Well, you know, man, like whatever it is you are looking for ain't here. Dave's not here either."
+                                            }
+                                        })
                                     }
-                                },
-                                AppRoutes::About => view!{cx,
-                                    "This is the About page."
-                                },
-                                AppRoutes::NotFound => view! {cx,
-                                     "Well, you know, man, like whatever it is you are looking for ain't here. Dave's not here either."
+
                                 }
-                            })
+
+                            }
                         }
 
                     }
