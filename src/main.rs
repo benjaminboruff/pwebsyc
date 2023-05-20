@@ -1,4 +1,5 @@
 use components::card::Card;
+use components::hero::Hero;
 use sycamore::prelude::*;
 use sycamore_router::{HistoryIntegration, Route, Router};
 
@@ -23,12 +24,11 @@ fn main() {
                     let count = create_signal(cx, vec![1,2,3,4]);
                     view! { cx,
                         div(class="app min-h-screen bg-sky-400") {
-                            div(class="content") {
-                                div(class="container mx-auto p-4"){
-                                    div(class="flex") {
+                            div(class="content text-gray-900 font-sans") {
+                                Hero{}
+                                div(class="container p-4 mx-auto"){
                                         (match route.get().as_ref() {
                                             AppRoutes::Index => view! {cx,
-                                                div(class="flex-col mx-auto"){
                                                     Keyed(
                                                         iterable=count,
                                                         view=|cx, x| view! { cx,
@@ -36,7 +36,6 @@ fn main() {
                                                         },
                                                         key=|x| *x,
                                                     )
-                                                }
                                             },
                                             AppRoutes::About => view!{cx,
                                                 article(class="flex flex-col justify-center items-center") {
@@ -47,8 +46,6 @@ fn main() {
                                                 "Well, you know, man, like whatever it is you are looking for ain't here. Dave's not here either."
                                             }
                                         })
-                                    }
-
                                 }
 
                             }
