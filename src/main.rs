@@ -6,6 +6,14 @@ use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct MyData {
+    facebook_url: &'static str,
+    linkedin_url: &'static str,
+    stackoverflow_url: &'static str,
+    github_url: &'static str,
+}
+
 #[derive(Route)]
 enum AppRoutes {
     #[to("/")]
@@ -20,6 +28,16 @@ enum AppRoutes {
 
 fn main() {
     sycamore::render(|cx| {
+        let my_data = MyData {
+            facebook_url: "https://www.facebook.com/BHBoruff/",
+            linkedin_url: "https://www.linkedin.com/in/benjaminboruff/",
+            stackoverflow_url: "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
+            github_url: "https://github.com/benjaminboruff",
+        };
+
+        let my_data_ref = create_ref(cx, my_data);
+        provide_context_ref(cx, my_data_ref);
+
         view! { cx,
             Router(
                 integration=HistoryIntegration::new(),
