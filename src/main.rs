@@ -7,6 +7,7 @@ use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
 
+// App state definitions
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct MyData {
     facebook_url: &'static str,
@@ -14,7 +15,77 @@ struct MyData {
     stackoverflow_url: &'static str,
     github_url: &'static str,
 }
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct TabStateData {
+    selected_anchor_classes: &'static str,
+    unselected_anchor_classes: &'static str,
+    selected_span_classes: &'static str,
+    unselected_span_classes: &'static str,
+}
+impl TabStateData {
+    fn new() -> Self {
+        Self {
+            selected_anchor_classes: "bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-sm font-medium hover:bg-sky-100 focus:z-10",
+            unselected_anchor_classes: "bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-sm font-medium hover:bg-sky-100 focus:z-10",
+            selected_span_classes: "bg-pink-500 absolute inset-x-0 bottom-0 h-0.5",
+            unselected_span_classes: "bg-transparent absolute inset-x-0 bottom-0 h-0.5",
+        }
+    }
+}
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct CurrentTabState {
+    project_anchor_classes: &'static str,
+    project_span_classes: &'static str,
+    about_anchor_classes: &'static str,
+    about_span_classes: &'static str,
+    contact_anchor_classes: &'static str,
+    contact_span_classes: &'static str,
+}
+impl CurrentTabState {
+    fn new() -> Self {
+        Self {
+            project_anchor_classes: "",
+            project_span_classes: "",
+            about_anchor_classes: "",
+            about_span_classes: "",
+            contact_anchor_classes: "",
+            contact_span_classes: "",
+        }
+    }
+    fn select_project(&self, tab_state_data: &TabStateData) -> Self {
+        Self {
+            project_anchor_classes: tab_state_data.selected_anchor_classes,
+            project_span_classes: tab_state_data.selected_span_classes,
+            about_anchor_classes: tab_state_data.unselected_anchor_classes,
+            about_span_classes: tab_state_data.unselected_span_classes,
+            contact_anchor_classes: tab_state_data.unselected_anchor_classes,
+            contact_span_classes: tab_state_data.unselected_span_classes,
+        }
+    }
+    fn select_about(&self, tab_state_data: &TabStateData) -> Self {
+        Self {
+            project_anchor_classes: tab_state_data.unselected_anchor_classes,
+            project_span_classes: tab_state_data.unselected_span_classes,
+            about_anchor_classes: tab_state_data.selected_anchor_classes,
+            about_span_classes: tab_state_data.selected_span_classes,
+            contact_anchor_classes: tab_state_data.unselected_anchor_classes,
+            contact_span_classes: tab_state_data.unselected_span_classes,
+        }
+    }
+    fn select_contact(&self, tab_state_data: &TabStateData) -> Self {
+        Self {
+            project_anchor_classes: tab_state_data.unselected_anchor_classes,
+            project_span_classes: tab_state_data.unselected_span_classes,
+            about_anchor_classes: tab_state_data.unselected_anchor_classes,
+            about_span_classes: tab_state_data.unselected_span_classes,
+            contact_anchor_classes: tab_state_data.selected_anchor_classes,
+            contact_span_classes: tab_state_data.selected_span_classes,
+        }
+    }
+}
+
+// App routes
 #[derive(Route)]
 enum AppRoutes {
     #[to("/")]
@@ -29,15 +100,26 @@ enum AppRoutes {
 
 fn main() {
     sycamore::render(|cx| {
+        // App state setup
+
+        // Contact state
         let my_data = MyData {
             facebook_url: "https://www.facebook.com/BHBoruff/",
             linkedin_url: "https://www.linkedin.com/in/benjaminboruff/",
             stackoverflow_url: "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
             github_url: "https://github.com/benjaminboruff",
         };
-
         let my_data_ref = create_ref(cx, my_data);
         provide_context_ref(cx, my_data_ref);
+
+        // Nav state
+        let tab_state_data = TabStateData::new();
+        let tab_state_data_ref = create_ref(cx, tab_state_data);
+        provide_context_ref(cx, tab_state_data_ref);
+
+        let current_tab_state = CurrentTabState::new().select_project(&tab_state_data);
+        let current_tab_state_ref = create_ref(cx, current_tab_state);
+        provide_context_ref(cx, current_tab_state_ref);
 
         view! { cx,
             Router(
