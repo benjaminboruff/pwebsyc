@@ -4,5 +4,6 @@ module.exports = {
     fontFamily: {
       sans: ["Work Sans", "sans-serif"],
     }
-  }
+  },
+  plugins: [require('@tailwindcss/forms'),]
 };

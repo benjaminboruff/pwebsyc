@@ -1,6 +1,7 @@
 use components::card::Card;
 use components::contact::Contact;
 use components::hero::Hero;
+use components::nav::Nav;
 use sycamore::prelude::*;
 use sycamore_router::{HistoryIntegration, Route, Router};
 
@@ -47,6 +48,7 @@ fn main() {
                         div(class="app min-h-screen bg-sky-400") {
                             div(class="text-gray-900 font-sans") {
                                 Hero{}
+                                Nav{}
                                 div(class="container p-4 mx-auto"){
                                     (match route.get().as_ref() {
                                         AppRoutes::Index => view! {cx,
