@@ -10,13 +10,22 @@ mod components;
 // App state definitions
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct MyData {
+    // personal data for the Contact component
     facebook_url: &'static str,
     linkedin_url: &'static str,
     stackoverflow_url: &'static str,
     github_url: &'static str,
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
+struct SelectState(&'static str); // state for the select/option elements for small screens
+impl SelectState {
+    pub fn path(&self) -> &'static str {
+        self.0
+    }
+}
+#[derive(Clone, Copy, PartialEq, Eq)]
 struct TabStateData {
+    // tailwindcss class data for the Nav component's tabs
     selected_anchor_classes: &'static str,
     unselected_anchor_classes: &'static str,
     selected_span_classes: &'static str,
@@ -35,6 +44,7 @@ impl TabStateData {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct CurrentTabState {
+    // state to hold the tailwindcss classes for the currently selected and unselected tabs
     project_anchor_classes: &'static str,
     project_span_classes: &'static str,
     about_anchor_classes: &'static str,
@@ -54,6 +64,7 @@ impl CurrentTabState {
         }
     }
     fn select_project(&self, tab_state_data: &TabStateData) -> Self {
+        // classes to style the currently selected Projects tab and unselected About/Contact tabs
         Self {
             project_anchor_classes: tab_state_data.selected_anchor_classes,
             project_span_classes: tab_state_data.selected_span_classes,
@@ -64,6 +75,7 @@ impl CurrentTabState {
         }
     }
     fn select_about(&self, tab_state_data: &TabStateData) -> Self {
+        // classes to style the currently selected About tab and unselected Projects/Contact tabs
         Self {
             project_anchor_classes: tab_state_data.unselected_anchor_classes,
             project_span_classes: tab_state_data.unselected_span_classes,
@@ -74,6 +86,7 @@ impl CurrentTabState {
         }
     }
     fn select_contact(&self, tab_state_data: &TabStateData) -> Self {
+        // classes to style the currently selected Contact tab and unselected Projects/About tabs
         Self {
             project_anchor_classes: tab_state_data.unselected_anchor_classes,
             project_span_classes: tab_state_data.unselected_span_classes,
@@ -113,13 +126,16 @@ fn main() {
         provide_context_ref(cx, my_data_ref);
 
         // Nav state
+        let select_state = create_signal(cx, SelectState("/"));
+        provide_context_ref(cx, select_state);
+
         let tab_state_data = TabStateData::new();
         let tab_state_data_ref = create_ref(cx, tab_state_data);
         provide_context_ref(cx, tab_state_data_ref);
 
-        let current_tab_state = CurrentTabState::new().select_project(&tab_state_data);
-        let current_tab_state_ref = create_ref(cx, current_tab_state);
-        provide_context_ref(cx, current_tab_state_ref);
+        let current_tab_state =
+            create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
+        provide_context_ref(cx, current_tab_state);
 
         view! { cx,
             Router(
