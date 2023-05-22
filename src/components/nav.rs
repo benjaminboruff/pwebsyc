@@ -6,12 +6,52 @@ use sycamore_router::navigate;
 use crate::CurrentTabState;
 use crate::Page;
 use crate::SelectState;
+use crate::SiteData;
 use crate::State;
 use crate::TabStateData;
+
+fn select_page(page_name: &str, pages: Vec<Page>) -> Vec<Page> {
+    let mut updated_pages: Vec<Page> = Vec::new();
+
+    for page in pages.iter() {
+        if page.name == page_name {
+            updated_pages.push(page.select_page());
+        } else {
+            updated_pages.push(page.unselect_page())
+        }
+    }
+
+    updated_pages
+}
+
+fn create_new_app_state(site_data: SiteData, pages: Vec<Page>) -> HashMap<&'static str, State> {
+    let mut new_app_state: HashMap<&str, State> = HashMap::new();
+    new_app_state.insert("site_data", State::SiteData(site_data));
+
+    for page in pages.iter() {
+        match page.name {
+            "Projects" => {
+                new_app_state.insert("projects_page", State::ProjectsPage(*page));
+            }
+            "About" => {
+                new_app_state.insert("about_page", State::AboutPage(*page));
+            }
+            "Contact" => {
+                new_app_state.insert("contact_page", State::ContactPage(*page));
+            }
+            _ => {
+                new_app_state.insert("error", State::ProjectsPage(*page));
+            }
+        }
+    }
+
+    new_app_state
+}
 
 #[component]
 pub fn Nav<G: Html>(cx: Scope) -> View<G> {
     let app_state: &Signal<HashMap<&str, State>> = use_context(cx);
+    let site_state_data = *app_state.get().get("site_data").unwrap();
     let projects_page_state_data = *app_state.get().get("projects_page").unwrap();
     let about_page_state_data = *app_state.get().get("about_page").unwrap();
     let contact_page_state_data = *app_state.get().get("contact_page").unwrap();
@@ -34,6 +74,7 @@ pub fn Nav<G: Html>(cx: Scope) -> View<G> {
         Page::new()
     };
 
+    // old state stuff
     let select_state: &Signal<SelectState> = use_context(cx);
     let tab_state_data: &TabStateData = use_context(cx);
     let tab_state: &Signal<CurrentTabState> = use_context(cx);

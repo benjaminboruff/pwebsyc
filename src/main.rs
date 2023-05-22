@@ -62,6 +62,28 @@ impl Page {
             selected,
         }
     }
+    fn select_page(&self) -> Self {
+        let selected = true;
+        let name = self.name;
+        let route = self.route;
+
+        Self {
+            name,
+            route,
+            selected,
+        }
+    }
+    fn unselect_page(&self) -> Self {
+        let selected = false;
+        let name = self.name;
+        let route = self.route;
+
+        Self {
+            name,
+            route,
+            selected,
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
