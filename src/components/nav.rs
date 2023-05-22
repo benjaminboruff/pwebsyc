@@ -1,4 +1,4 @@
-// use crate::components::option::Option;
+use crate::components::option::Option;
 use sycamore::prelude::*;
 use sycamore_router::navigate;
 
@@ -31,9 +31,10 @@ pub fn Nav<G: Html>(cx: Scope) -> View<G> {
                 label(for="tabs", class="sr-only"){ "Select a tab" }
                 select(on:click=|_| {navigate(select_state.get().path())}, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
                     option(on:click=move |_| {select_option(SelectState("/")); select_tab("/")}) {"Projects"}
-                    option(on:click=move |_| {select_option(SelectState("/about")); select_tab("/about")}) {"About"}
+                    // option(on:click=move |_| {select_option(SelectState("/about")); select_tab("/about")}) {"About"}
+                    Option(selected=create_signal(cx, true), label="About", path="/about")
                     option(on:click=move |_| {select_option(SelectState("/contact")); select_tab("/contact")}) {"Contact"}
-                    // Option(selected=create_signal(cx, true), label="Bar", path="/about")
+
                 }
             }
             // tab elements when viewed on medium or larger devices

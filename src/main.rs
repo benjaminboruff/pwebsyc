@@ -113,9 +113,7 @@ enum AppRoutes {
 
 fn main() {
     sycamore::render(|cx| {
-        // App state setup
-
-        // Contact state
+        // Contact state setup
         let my_data = MyData {
             facebook_url: "https://www.facebook.com/BHBoruff/",
             linkedin_url: "https://www.linkedin.com/in/benjaminboruff/",
@@ -124,15 +122,12 @@ fn main() {
         };
         let my_data_ref = create_ref(cx, my_data);
         provide_context_ref(cx, my_data_ref);
-
-        // Nav state
+        // Nav state setup
         let select_state = create_signal(cx, SelectState("/"));
         provide_context_ref(cx, select_state);
-
         let tab_state_data = TabStateData::new();
         let tab_state_data_ref = create_ref(cx, tab_state_data);
         provide_context_ref(cx, tab_state_data_ref);
-
         let current_tab_state =
             create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
         provide_context_ref(cx, current_tab_state);
