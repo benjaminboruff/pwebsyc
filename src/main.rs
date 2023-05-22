@@ -2,20 +2,68 @@ use components::card::Card;
 use components::contact::Contact;
 use components::hero::Hero;
 use components::nav::Nav;
+use std::collections::HashMap;
 use sycamore::prelude::*;
 use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
 
-// App state definitions
+// App state data structures
 #[derive(Clone, Copy, PartialEq, Eq)]
-struct MyData {
-    // personal data for the Contact component
+struct SiteData {
+    // generic site data that could be used anywhere
     facebook_url: &'static str,
     linkedin_url: &'static str,
     stackoverflow_url: &'static str,
     github_url: &'static str,
 }
+impl SiteData {
+    fn new() -> Self {
+        Self {
+            facebook_url: "http://facebook.com",
+            linkedin_url: "http://linkedin.com",
+            stackoverflow_url: "http://stackoverflow.com",
+            github_url: "http://github.com",
+        }
+    }
+    fn builder(
+        facebook_url: &'static str,
+        linkedin_url: &'static str,
+        stackoverflow_url: &'static str,
+        github_url: &'static str,
+    ) -> Self {
+        Self {
+            facebook_url,
+            linkedin_url,
+            stackoverflow_url,
+            github_url,
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct Page {
+    name: &'static str,
+    route: &'static str,
+    selected: bool,
+}
+impl Page {
+    fn new() -> Self {
+        Self {
+            name: "Default",
+            route: "/",
+            selected: false,
+        }
+    }
+    fn builder(name: &'static str, route: &'static str, selected: bool) -> Self {
+        Self {
+            name,
+            route,
+            selected,
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct SelectState(&'static str); // state for the select/option elements for small screens
 impl SelectState {
@@ -111,17 +159,25 @@ enum AppRoutes {
     NotFound,
 }
 
+// App State
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum State {
+    SiteData(SiteData),
+    ProjectsPage(Page),
+    AboutPage(Page),
+    ContactPage(Page),
+}
+
 fn main() {
     sycamore::render(|cx| {
-        // Contact state setup
-        let my_data = MyData {
-            facebook_url: "https://www.facebook.com/BHBoruff/",
-            linkedin_url: "https://www.linkedin.com/in/benjaminboruff/",
-            stackoverflow_url: "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
-            github_url: "https://github.com/benjaminboruff",
-        };
-        let my_data_ref = create_ref(cx, my_data);
-        provide_context_ref(cx, my_data_ref);
+        // Site data state setup
+        let site_data = SiteData::builder(
+            "https://www.facebook.com/BHBoruff/",
+            "https://www.linkedin.com/in/benjaminboruff/",
+            "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
+            "https://github.com/benjaminboruff",
+        );
+
         // Nav state setup
         let select_state = create_signal(cx, SelectState("/"));
         provide_context_ref(cx, select_state);
@@ -131,6 +187,19 @@ fn main() {
         let current_tab_state =
             create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
         provide_context_ref(cx, current_tab_state);
+
+        // App State Setup
+        let projects_page = Page::builder("Projects", "/", true);
+        let about_page = Page::builder("About", "/about", false);
+        let contact_page = Page::builder("Contact", "/contact", false);
+        let mut app_state = HashMap::new();
+        app_state.insert("site_data", State::SiteData(site_data));
+        app_state.insert("projects_page", State::ProjectsPage(projects_page));
+        app_state.insert("about_page", State::AboutPage(about_page));
+        app_state.insert("contact_page", State::ContactPage(contact_page));
+
+        let app_state_ref = create_signal(cx, app_state);
+        provide_context_ref(cx, app_state_ref);
 
         view! { cx,
             Router(
