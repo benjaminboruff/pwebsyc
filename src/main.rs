@@ -225,6 +225,7 @@ fn main() {
         app_state.insert("about_page", State::AboutPage(about_page));
         app_state.insert("contact_page", State::ContactPage(contact_page));
 
+        // I have no idea why this has to be reactive. It is all static data ... why wouldn't a create_ref() work?
         let app_state_ref = create_signal(cx, app_state);
         provide_context_ref(cx, app_state_ref);
 

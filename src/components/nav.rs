@@ -13,6 +13,7 @@ use crate::TabStateData;
 
 #[component]
 pub fn Nav<G: Html>(cx: Scope) -> View<G> {
+    // why does app_state need to be reactive? It consists of all static data
     let app_state: &Signal<HashMap<&str, State>> = use_context(cx);
     let projects_page_state_data = *app_state.get().get("projects_page").unwrap();
     let about_page_state_data = *app_state.get().get("about_page").unwrap();
