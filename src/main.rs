@@ -62,34 +62,33 @@ impl Page {
             selected,
         }
     }
-    fn select_page(&self) -> Self {
-        let selected = true;
-        let name = self.name;
-        let route = self.route;
-
-        Self {
-            name,
-            route,
-            selected,
-        }
-    }
-    fn unselect_page(&self) -> Self {
-        let selected = false;
-        let name = self.name;
-        let route = self.route;
-
-        Self {
-            name,
-            route,
-            selected,
-        }
-    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct SelectState(&'static str); // state for the select/option elements for small screens
 impl SelectState {
     pub fn path(&self) -> &'static str {
+        self.0
+    }
+}
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct ProjectSelected(bool); // state for the project selected attribute
+impl ProjectSelected {
+    pub fn value(&self) -> bool {
+        self.0
+    }
+}
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct AboutSelected(bool); // state for the select/option elements for small screens
+impl AboutSelected {
+    pub fn value(&self) -> bool {
+        self.0
+    }
+}
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct ContactSelected(bool); // state for the select/option elements for small screens
+impl ContactSelected {
+    pub fn value(&self) -> bool {
         self.0
     }
 }
@@ -203,6 +202,12 @@ fn main() {
         // Nav state setup
         let select_state = create_signal(cx, SelectState("/"));
         provide_context_ref(cx, select_state);
+        let projects_selected = create_signal(cx, ProjectSelected(true));
+        provide_context_ref(cx, projects_selected);
+        let about_selected = create_signal(cx, AboutSelected(false));
+        provide_context_ref(cx, about_selected);
+        let contact_selected = create_signal(cx, ContactSelected(false));
+        provide_context_ref(cx, contact_selected);
         let tab_state_data = TabStateData::new();
         let tab_state_data_ref = create_ref(cx, tab_state_data);
         provide_context_ref(cx, tab_state_data_ref);
