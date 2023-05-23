@@ -1,111 +1,102 @@
+use std::collections::HashMap;
 use sycamore::prelude::*;
 use sycamore_router::navigate;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct TabStateData {
-    selected_anchor_classes: &'static str,
-    unselected_anchor_classes: &'static str,
-    selected_span_classes: &'static str,
-    unselected_span_classes: &'static str,
-}
-
-impl TabStateData {
-    fn new() -> Self {
-        Self {
-            selected_anchor_classes: "bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-sm font-medium hover:bg-sky-100 focus:z-10",
-            unselected_anchor_classes: "bg-gray-100 text-gray-500 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-sm font-medium hover:bg-sky-100 focus:z-10",
-            selected_span_classes: "bg-pink-500 absolute inset-x-0 bottom-0 h-0.5",
-            unselected_span_classes: "bg-transparent absolute inset-x-0 bottom-0 h-0.5",
-        }
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct CurrentTabState {
-    project_anchor_classes: &'static str,
-    project_span_classes: &'static str,
-    about_anchor_classes: &'static str,
-    about_span_classes: &'static str,
-    contact_anchor_classes: &'static str,
-    contact_span_classes: &'static str,
-}
-
-impl CurrentTabState {
-    fn initial_tab_state(tab_state_data: &TabStateData) -> Self {
-        Self {
-            project_anchor_classes: "",
-            project_span_classes: "",
-            about_anchor_classes: "",
-            about_span_classes: "",
-            contact_anchor_classes: "",
-            contact_span_classes: "",
-        }
-        .select_project(tab_state_data)
-    }
-
-    fn select_project(&self, tab_state_data: &TabStateData) -> Self {
-        Self {
-            project_anchor_classes: tab_state_data.selected_anchor_classes,
-            project_span_classes: tab_state_data.selected_span_classes,
-            about_anchor_classes: tab_state_data.unselected_anchor_classes,
-            about_span_classes: tab_state_data.unselected_span_classes,
-            contact_anchor_classes: tab_state_data.unselected_anchor_classes,
-            contact_span_classes: tab_state_data.unselected_span_classes,
-        }
-    }
-    fn select_about(&self, tab_state_data: &TabStateData) -> Self {
-        Self {
-            project_anchor_classes: tab_state_data.unselected_anchor_classes,
-            project_span_classes: tab_state_data.unselected_span_classes,
-            about_anchor_classes: tab_state_data.selected_anchor_classes,
-            about_span_classes: tab_state_data.selected_span_classes,
-            contact_anchor_classes: tab_state_data.unselected_anchor_classes,
-            contact_span_classes: tab_state_data.unselected_span_classes,
-        }
-    }
-    fn select_contact(&self, tab_state_data: &TabStateData) -> Self {
-        Self {
-            project_anchor_classes: tab_state_data.unselected_anchor_classes,
-            project_span_classes: tab_state_data.unselected_span_classes,
-            about_anchor_classes: tab_state_data.unselected_anchor_classes,
-            about_span_classes: tab_state_data.unselected_span_classes,
-            contact_anchor_classes: tab_state_data.selected_anchor_classes,
-            contact_span_classes: tab_state_data.selected_span_classes,
-        }
-    }
-}
+use crate::AboutSelected;
+use crate::ContactSelected;
+use crate::CurrentTabState;
+use crate::Page;
+use crate::ProjectSelected;
+use crate::SelectState;
+use crate::State;
+use crate::TabStateData;
 
 #[component]
 pub fn Nav<G: Html>(cx: Scope) -> View<G> {
-    let select_state = create_signal(cx, "/");
-    let tab_state_data = TabStateData::new();
-    let current_tab_state = CurrentTabState::initial_tab_state(&tab_state_data);
-    let tab_state = create_signal(cx, current_tab_state);
+    let app_state: &Signal<HashMap<&str, State>> = use_context(cx);
+    let projects_page_state_data = *app_state.get().get("projects_page").unwrap();
+    let about_page_state_data = *app_state.get().get("about_page").unwrap();
+    let contact_page_state_data = *app_state.get().get("contact_page").unwrap();
+
+    let projects_page_data = if let State::ProjectsPage(data) = projects_page_state_data {
+        data
+    } else {
+        Page::new()
+    };
+
+    let about_page_data = if let State::AboutPage(data) = about_page_state_data {
+        data
+    } else {
+        Page::new()
+    };
+
+    let contact_page_data = if let State::ContactPage(data) = contact_page_state_data {
+        data
+    } else {
+        Page::new()
+    };
+
+    let select_state: &Signal<SelectState> = use_context(cx);
+    let projects_selected: &Signal<ProjectSelected> = use_context(cx);
+    let about_selected: &Signal<AboutSelected> = use_context(cx);
+    let contact_selected: &Signal<ContactSelected> = use_context(cx);
+    let tab_state_data: &TabStateData = use_context(cx);
+    let tab_state: &Signal<CurrentTabState> = use_context(cx);
+    let current_tab_state = *tab_state.get();
+
+    let select_option = |path| select_state.set(path);
+    let select_tab = move |path| match path {
+        "/" => tab_state.set(current_tab_state.select_project(&tab_state_data)),
+        "/about" => tab_state.set(current_tab_state.select_about(&tab_state_data)),
+        "/contact" => tab_state.set(current_tab_state.select_contact(&tab_state_data)),
+        _ => tab_state.set(current_tab_state.select_project(&tab_state_data)),
+    };
+
+    let set_projects_as_selected = || {
+        projects_selected.set(ProjectSelected(true));
+        about_selected.set(AboutSelected(false));
+        contact_selected.set(ContactSelected(false));
+    };
+    let set_about_as_selected = || {
+        projects_selected.set(ProjectSelected(false));
+        about_selected.set(AboutSelected(true));
+        contact_selected.set(ContactSelected(false));
+    };
+    let set_contact_as_selected = || {
+        projects_selected.set(ProjectSelected(false));
+        about_selected.set(AboutSelected(false));
+        contact_selected.set(ContactSelected(true));
+    };
+
+    // set initial route - this resets the rout to match the default tab upon page refresh
+    // which is typically the root / to list all the projects
+    navigate(select_state.get().path());
 
     view! {cx,
         div {
-            // select element with option when viewed on small devices
+            // select element with options when viewed on small devices
             div(class="sm:hidden") {
                 label(for="tabs", class="sr-only"){ "Select a tab" }
-                select(on:click=|_| {navigate(*select_state.get())}, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
-                    option(on:click=|_| {select_state.set("/")}) {"Projects"}
-                    option(on:click=|_| {select_state.set("/about")}) {"About"}
-                    option(on:click=|_| {select_state.set("/contact")}) {"Contact"}
+                select(on:click=|_| {navigate(select_state.get().path())}, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
+                    option(selected=projects_selected.get().value(), on:click=move |_| {select_option(SelectState("/")); select_tab("/"); set_projects_as_selected()}) {(projects_page_data.name)}
+                    option(selected=about_selected.get().value(), on:click=move |_| {select_option(SelectState("/about")); select_tab("/about"); set_about_as_selected()}) {(about_page_data.name)}
+                    option(selected=contact_selected.get().value(), on:click=move |_| {select_option(SelectState("/contact")); select_tab("/contact"); set_contact_as_selected()}) {(contact_page_data.name)}
+
                 }
             }
             // tab elements when viewed on medium or larger devices
             div(class="hidden sm:block") {
                 nav(class="isolate flex divide-x divide-gray-300 shadow-md", aria-label="Tabs") {
-                    a(on:click=move|_| {tab_state.set(current_tab_state.select_project(&tab_state_data))}, href="/", class=(tab_state.get().project_anchor_classes), aria-current="page") {
-                        span { "Projects" }
+                    a(on:click=move |_| {select_tab("/"); select_option(SelectState("/")); set_projects_as_selected()}, href=(projects_page_data.route), class=(tab_state.get().project_anchor_classes), aria-current="page") {
+                        span { (projects_page_data.name) }
                         span(aria-hidden="true", class=(tab_state.get().project_span_classes)) {}
                     }
-                    a(on:click=move|_| {tab_state.set(current_tab_state.select_about(&tab_state_data))}, href="/about", class=(tab_state.get().about_anchor_classes)) {
-                        span { "About" }
+                    a(on:click=move|_| {select_tab("/about"); select_option(SelectState("/about")); set_about_as_selected()}, href=(about_page_data.route), class=(tab_state.get().about_anchor_classes)) {
+                        span { (about_page_data.name) }
                         span(aria-hidden="true", class=(tab_state.get().about_span_classes)) {}
                     }
-                    a(on:click=move|_| {tab_state.set(current_tab_state.select_contact(&tab_state_data))}, href="/contact", class=(tab_state.get().contact_anchor_classes)) {
-                        span { "Contact" }
+                    a(on:click=move|_| {select_tab("/contact"); select_option(SelectState("/contact")); set_contact_as_selected()}, href=(contact_page_data.route), class=(tab_state.get().contact_anchor_classes)) {
+                        span { (contact_page_data.name) }
                         span(aria-hidden="true", class=(tab_state.get().contact_span_classes)) {}
                     }
                 }
