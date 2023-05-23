@@ -8,7 +8,7 @@ use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
 
-// App state data structures
+// app data structures
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct SiteData {
     // generic site data that could be used anywhere
@@ -167,7 +167,7 @@ impl CurrentTabState {
     }
 }
 
-// App routes
+// app routes
 #[derive(Route)]
 enum AppRoutes {
     #[to("/")]
@@ -180,9 +180,9 @@ enum AppRoutes {
     NotFound,
 }
 
-// App State
+// static app data
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum State {
+enum AppData {
     SiteData(SiteData),
     ProjectsPage(Page),
     AboutPage(Page),
@@ -215,18 +215,17 @@ fn main() {
             create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
         provide_context_ref(cx, current_tab_state);
 
-        // App State Setup
+        // static app data setup for access by components
         let projects_page = Page::builder("Projects", "/", true);
         let about_page = Page::builder("About", "/about", false);
         let contact_page = Page::builder("Contact", "/contact", false);
-        let mut app_state = HashMap::new();
-        app_state.insert("site_data", State::SiteData(site_data));
-        app_state.insert("projects_page", State::ProjectsPage(projects_page));
-        app_state.insert("about_page", State::AboutPage(about_page));
-        app_state.insert("contact_page", State::ContactPage(contact_page));
+        let mut static_app_data = HashMap::new();
+        static_app_data.insert("site_data", AppData::SiteData(site_data));
+        static_app_data.insert("projects_page", AppData::ProjectsPage(projects_page));
+        static_app_data.insert("about_page", AppData::AboutPage(about_page));
+        static_app_data.insert("contact_page", AppData::ContactPage(contact_page));
 
-        // I have no idea why this has to be reactive. It is all static data ... why wouldn't a create_ref() work?
-        let app_state_ref = create_signal(cx, app_state);
+        let app_state_ref = create_ref(cx, static_app_data);
         provide_context_ref(cx, app_state_ref);
 
         view! { cx,

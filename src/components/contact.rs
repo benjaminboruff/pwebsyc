@@ -2,23 +2,23 @@ use std::collections::HashMap;
 
 use sycamore::prelude::*;
 
+use crate::AppData;
 use crate::Page;
 use crate::SiteData;
-use crate::State;
 
 #[component]
 pub fn Contact<G: Html>(cx: Scope) -> View<G> {
-    let app_state: &Signal<HashMap<&str, State>> = use_context(cx);
-    let site_state_data = *app_state.get().get("site_data").unwrap();
-    let contact_page_state_data = *app_state.get().get("contact_page").unwrap();
+    let static_app_data: &HashMap<&str, AppData> = use_context(cx);
+    let site_data = *static_app_data.get("site_data").unwrap();
+    let contact_page_data = *static_app_data.get("contact_page").unwrap();
 
-    let contact_site_data = if let State::SiteData(data) = site_state_data {
+    let general_site = if let AppData::SiteData(data) = site_data {
         data
     } else {
         SiteData::new()
     };
 
-    let contact_page_data = if let State::ContactPage(data) = contact_page_state_data {
+    let contact_page = if let AppData::ContactPage(data) = contact_page_data {
         data
     } else {
         Page::new()
@@ -26,11 +26,11 @@ pub fn Contact<G: Html>(cx: Scope) -> View<G> {
 
     view! {cx,
         div (class="flex flex-col justify-center items-center"){
-            p(class="text-2xl leading-8 text-gray-600"){(contact_page_data.name)}
+            p(class="text-2xl leading-8 text-gray-600"){(contact_page.name)}
             p (class="text-lg leading-8 text-gray-600"){"There are various ways to contact me. Please check-out the following sites for my email address and additional information. "}
         }
         div(class="flex justify-center gap-2 p-4"){
-            a( href=(contact_site_data.facebook_url)) {
+            a( href=(general_site.facebook_url)) {
                 svg(class="fill-current text-gray-600", width="33", height="33", role="img", viewBox="0 0 24 24", xmlns="http://www.w3.org/2000/svg") {
                     title {"Facebook"}
                     path( d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125
@@ -39,7 +39,7 @@ pub fn Contact<G: Html>(cx: Scope) -> View<G> {
                     23.027 24 18.062 24 12.073z" )
                 }
             }
-            a( href=(contact_site_data.linkedin_url)) {
+            a( href=(general_site.linkedin_url)) {
                 svg(class="fill-current text-gray-600", width="33", height="33", role="img", viewBox="0 0 24 24", xmlns="http://www.w3.org/2000/svg") {
                     title {"LinkedIn"}
                     path( d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9
@@ -48,7 +48,7 @@ pub fn Contact<G: Html>(cx: Scope) -> View<G> {
                     23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" )
                 }
             }
-            a( href=(contact_site_data.stackoverflow_url)) {
+            a( href=(general_site.stackoverflow_url)) {
                 svg(class="fill-current text-gray-600", width="33", height="33", role="img", viewBox="0 0 24 24", xmlns="http://www.w3.org/2000/svg") {
                     title {"Stack Overflow"}
                     path( d="M15.725 0l-1.72 1.277 6.39 8.588 1.716-1.277L15.725 0zm-3.94 3.418l-1.369 1.644 8.225 6.85 1.369-1.644-8.225-6.85zm-3.15
@@ -56,7 +56,7 @@ pub fn Contact<G: Html>(cx: Scope) -> View<G> {
                     15.47V24h19.19v-8.53h-2.133v6.397H4.021v-6.396H1.89zm4.265 2.133v2.13h10.66v-2.13H6.154Z" )
                 }
             }
-            a( href=(contact_site_data.github_url)) {
+            a( href=(general_site.github_url)) {
                 svg(class="fill-current text-gray-600", width="33", height="33", role="img", viewBox="0 0 24 24", xmlns="http://www.w3.org/2000/svg") {
                     title {"GitHub"}
                     path( d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577
