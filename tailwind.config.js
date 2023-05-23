@@ -5,5 +5,5 @@ module.exports = {
       sans: ["Work Sans", "sans-serif"],
     }
   },
-  plugins: [require('@tailwindcss/forms'),]
+  plugins: [require('@tailwindcss/forms'), require("@tailwindcss/typography")]
 };

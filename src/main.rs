@@ -1,3 +1,4 @@
+use components::about::About;
 use components::card::Card;
 use components::contact::Contact;
 use components::hero::Hero;
@@ -240,7 +241,7 @@ fn main() {
                                 Nav{}
                                 div(class="container p-4 mx-auto"){
                                     (match route.get().as_ref() {
-                                        AppRoutes::Index => view! {cx,
+                                        AppRoutes::Index => view! {cx, // Projects
                                                 Keyed(
                                                     iterable=count,
                                                     view=|cx, x| view! { cx,
@@ -251,7 +252,7 @@ fn main() {
                                         },
                                         AppRoutes::About => view!{cx,
                                             div(class="flex flex-col justify-center items-center") {
-                                                p(class="text-lg leading-8 text-gray-700") {"This is the About page."}
+                                                About{}
                                             }
                                         },
                                         AppRoutes::Contact => view!{cx,
