@@ -1,16 +1,13 @@
 use std::collections::HashMap;
-
 use sycamore::prelude::*;
 
 use crate::AppData;
-use crate::Page;
 use crate::SiteData;
 
 #[component]
 pub fn Contact<G: Html>(cx: Scope) -> View<G> {
     let static_app_data: &HashMap<&str, AppData> = use_context(cx);
     let site_data = *static_app_data.get("site_data").unwrap();
-    let contact_page_data = *static_app_data.get("contact_page").unwrap();
 
     let general_site = if let AppData::SiteData(data) = site_data {
         data
@@ -18,16 +15,11 @@ pub fn Contact<G: Html>(cx: Scope) -> View<G> {
         SiteData::new()
     };
 
-    let contact_page = if let AppData::ContactPage(data) = contact_page_data {
-        data
-    } else {
-        Page::new()
-    };
-
     view! {cx,
         div (class="flex flex-col justify-center items-center"){
-            p(class="text-2xl leading-8 text-gray-600"){(contact_page.name)}
-            p (class="text-lg leading-8 text-gray-600"){"There are various ways to contact me. Please check-out the following sites for my email address and additional information. "}
+            div(class="prose") {
+                p (class="text-lg leading-8 text-gray-600"){"There are various ways to contact me. Please check-out the following sites for my email address and additional information. "}
+            }
         }
         div(class="flex justify-center gap-2 p-4"){
             a( href=(general_site.facebook_url)) {
