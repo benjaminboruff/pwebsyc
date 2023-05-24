@@ -3,8 +3,6 @@ use components::contact::Contact;
 use components::hero::Hero;
 use components::nav::Nav;
 use components::projects::Projects;
-use log::info;
-use log::Level;
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -195,8 +193,33 @@ enum AppData {
     ContactPage(Page),
 }
 
+// API that counts visits to the web-page
+const API_BASE_URL: &str = "https://api.github.com/users/benjaminboruff/repos";
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Repository {
+    name: String,
+    html_url: String,
+    description: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[serde(transparent)]
+struct Repositories {
+    repositories: Vec<Repository>,
+}
+
+async fn fetch_all_projects<G: Html>() -> Result<Repositories, reqwasm::Error> {
+    let url = format!("{}{}", API_BASE_URL, "?per_page=100");
+    let resp = Request::get(&url).send().await?;
+
+    let resp_str = resp.text().await?;
+    let repositories: Repositories = serde_json::from_str(&resp_str.as_str())?;
+    Ok(repositories)
+}
+
 #[component]
-async fn App<G: Html>(cx: Scope<'_>) -> View<G> {
+async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
     // Site data state setup
     let site_data = SiteData::builder(
         "https://www.facebook.com/BHBoruff/",
@@ -234,10 +257,26 @@ async fn App<G: Html>(cx: Scope<'_>) -> View<G> {
     let app_state_ref = create_ref(cx, static_app_data);
     provide_context_ref(cx, app_state_ref);
 
+    // fetch github data for projects component
+    let github = fetch_all_projects::<G>().await.unwrap_or_default();
+    let mut repos: Vec<Repository> = github.repositories;
+    const TOP_SIX_REPOS: &[&str] = &[
+        "minigrep",
+        "blasteroids",
+        "calculator",
+        "calculator2",
+        "pomodoro",
+        "pwebsyc",
+    ];
+    // only keep the repos that are included in the array of top six repos
+    repos.retain(|repo| TOP_SIX_REPOS.contains(&repo.name.as_str()));
+    let github_repos = create_signal(cx, repos);
+    provide_context_ref(cx, github_repos);
+
     view! { cx,
         Router(
             integration=HistoryIntegration::new(),
-            view=|cx, route: &ReadSignal<AppRoutes>| {
+            view=move |cx, route: &ReadSignal<AppRoutes>| {
                 view! { cx,
                     div(class="app min-h-screen bg-sky-400") {
                         div(class="text-gray-900 font-sans") {
