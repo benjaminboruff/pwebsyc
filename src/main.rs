@@ -3,8 +3,14 @@ use components::card::Card;
 use components::contact::Contact;
 use components::hero::Hero;
 use components::nav::Nav;
+use components::projects::Projects;
+use log::info;
+use log::Level;
+use reqwasm::http::Request;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use sycamore::prelude::*;
+use sycamore::suspense::Suspense;
 use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
@@ -190,6 +196,17 @@ enum AppData {
     ContactPage(Page),
 }
 
+// #[component]
+// async fn ProjectTest<G: Html>(cx: Scope<'_>) -> View<G> {
+//     let github = fetch_all_projects().await.unwrap_or_default();
+//     let repos = github.repositories;
+//     info!("{:?}", repos);
+
+//     view! {cx,
+//         div {  }
+//     }
+// }
+
 fn main() {
     sycamore::render(|cx| {
         // Site data state setup
@@ -229,11 +246,13 @@ fn main() {
         let app_state_ref = create_ref(cx, static_app_data);
         provide_context_ref(cx, app_state_ref);
 
+        console_error_panic_hook::set_once();
+        console_log::init_with_level(log::Level::Debug).unwrap();
+
         view! { cx,
             Router(
                 integration=HistoryIntegration::new(),
                 view=|cx, route: &ReadSignal<AppRoutes>| {
-                    let count = create_signal(cx, vec![1,2,3,4]); // placeholder for project data
                     view! { cx,
                         div(class="app min-h-screen bg-sky-400") {
                             div(class="text-gray-900 font-sans") {
@@ -242,13 +261,11 @@ fn main() {
                                 div(class="container p-4 mx-auto"){
                                     (match route.get().as_ref() {
                                         AppRoutes::Index => view! {cx, // Projects
-                                                Keyed(
-                                                    iterable=count,
-                                                    view=|cx, x| view! { cx,
-                                                        Card(item=x){}
-                                                    },
-                                                    key=|x| *x,
-                                                )
+                                            div {
+                                                Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
+                                                    Projects{}
+                                                }
+                                            }
                                         },
                                         AppRoutes::About => view!{cx,
                                             div(class="flex flex-col justify-center items-center") {
