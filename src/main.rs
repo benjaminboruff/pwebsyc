@@ -1,5 +1,4 @@
 use components::about::About;
-use components::card::Card;
 use components::contact::Contact;
 use components::hero::Hero;
 use components::nav::Nav;
@@ -196,99 +195,91 @@ enum AppData {
     ContactPage(Page),
 }
 
-// #[component]
-// async fn ProjectTest<G: Html>(cx: Scope<'_>) -> View<G> {
-//     let github = fetch_all_projects().await.unwrap_or_default();
-//     let repos = github.repositories;
-//     info!("{:?}", repos);
+#[component]
+async fn App<G: Html>(cx: Scope<'_>) -> View<G> {
+    // Site data state setup
+    let site_data = SiteData::builder(
+        "https://www.facebook.com/BHBoruff/",
+        "https://www.linkedin.com/in/benjaminboruff/",
+        "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
+        "https://github.com/benjaminboruff",
+    );
 
-//     view! {cx,
-//         div {  }
-//     }
-// }
+    // Nav state setup
+    let select_state = create_signal(cx, SelectState("/"));
+    provide_context_ref(cx, select_state);
+    let projects_selected = create_signal(cx, ProjectSelected(true));
+    provide_context_ref(cx, projects_selected);
+    let about_selected = create_signal(cx, AboutSelected(false));
+    provide_context_ref(cx, about_selected);
+    let contact_selected = create_signal(cx, ContactSelected(false));
+    provide_context_ref(cx, contact_selected);
+    let tab_state_data = TabStateData::new();
+    let tab_state_data_ref = create_ref(cx, tab_state_data);
+    provide_context_ref(cx, tab_state_data_ref);
+    let current_tab_state =
+        create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
+    provide_context_ref(cx, current_tab_state);
 
-fn main() {
-    sycamore::render(|cx| {
-        // Site data state setup
-        let site_data = SiteData::builder(
-            "https://www.facebook.com/BHBoruff/",
-            "https://www.linkedin.com/in/benjaminboruff/",
-            "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
-            "https://github.com/benjaminboruff",
-        );
+    // static app data setup for access by components
+    let projects_page = Page::builder("Projects", "/", true);
+    let about_page = Page::builder("About", "/about", false);
+    let contact_page = Page::builder("Contact", "/contact", false);
+    let mut static_app_data = HashMap::new();
+    static_app_data.insert("site_data", AppData::SiteData(site_data));
+    static_app_data.insert("projects_page", AppData::ProjectsPage(projects_page));
+    static_app_data.insert("about_page", AppData::AboutPage(about_page));
+    static_app_data.insert("contact_page", AppData::ContactPage(contact_page));
 
-        // Nav state setup
-        let select_state = create_signal(cx, SelectState("/"));
-        provide_context_ref(cx, select_state);
-        let projects_selected = create_signal(cx, ProjectSelected(true));
-        provide_context_ref(cx, projects_selected);
-        let about_selected = create_signal(cx, AboutSelected(false));
-        provide_context_ref(cx, about_selected);
-        let contact_selected = create_signal(cx, ContactSelected(false));
-        provide_context_ref(cx, contact_selected);
-        let tab_state_data = TabStateData::new();
-        let tab_state_data_ref = create_ref(cx, tab_state_data);
-        provide_context_ref(cx, tab_state_data_ref);
-        let current_tab_state =
-            create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
-        provide_context_ref(cx, current_tab_state);
+    let app_state_ref = create_ref(cx, static_app_data);
+    provide_context_ref(cx, app_state_ref);
 
-        // static app data setup for access by components
-        let projects_page = Page::builder("Projects", "/", true);
-        let about_page = Page::builder("About", "/about", false);
-        let contact_page = Page::builder("Contact", "/contact", false);
-        let mut static_app_data = HashMap::new();
-        static_app_data.insert("site_data", AppData::SiteData(site_data));
-        static_app_data.insert("projects_page", AppData::ProjectsPage(projects_page));
-        static_app_data.insert("about_page", AppData::AboutPage(about_page));
-        static_app_data.insert("contact_page", AppData::ContactPage(contact_page));
-
-        let app_state_ref = create_ref(cx, static_app_data);
-        provide_context_ref(cx, app_state_ref);
-
-        console_error_panic_hook::set_once();
-        console_log::init_with_level(log::Level::Debug).unwrap();
-
-        view! { cx,
-            Router(
-                integration=HistoryIntegration::new(),
-                view=|cx, route: &ReadSignal<AppRoutes>| {
-                    view! { cx,
-                        div(class="app min-h-screen bg-sky-400") {
-                            div(class="text-gray-900 font-sans") {
-                                Hero{}
-                                Nav{}
-                                div(class="container p-4 mx-auto"){
-                                    (match route.get().as_ref() {
-                                        AppRoutes::Index => view! {cx, // Projects
-                                            div {
-                                                Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
-                                                    Projects{}
-                                                }
-                                            }
-                                        },
-                                        AppRoutes::About => view!{cx,
-                                            div(class="flex flex-col justify-center items-center") {
-                                                About{}
-                                            }
-                                        },
-                                        AppRoutes::Contact => view!{cx,
-                                            Contact{}
-                                        },
-                                        AppRoutes::NotFound => view! {cx,
-                                            div(class="flex flex-col justify-center items-center") {
-                                                p (class="text-lg leading-8 text-gray-700"){"Well, you know, man, like whatever it is you are looking for ain't here."}
-                                                p (class="text-lg leading-8 text-gray-700"){"Dave's not here, either."}
+    view! { cx,
+        Router(
+            integration=HistoryIntegration::new(),
+            view=|cx, route: &ReadSignal<AppRoutes>| {
+                view! { cx,
+                    div(class="app min-h-screen bg-sky-400") {
+                        div(class="text-gray-900 font-sans") {
+                            Hero{}
+                            Nav{}
+                            div(class="container p-4 mx-auto"){
+                                (match route.get().as_ref() {
+                                    AppRoutes::Index => view! {cx, // Projects
+                                        div {
+                                            Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
+                                                Projects{}
                                             }
                                         }
-                                    })
-                                }
+                                    },
+                                    AppRoutes::About => view!{cx,
+                                        div(class="flex flex-col justify-center items-center") {
+                                            About{}
+                                        }
+                                    },
+                                    AppRoutes::Contact => view!{cx,
+                                        Contact{}
+                                    },
+                                    AppRoutes::NotFound => view! {cx,
+                                        div(class="flex flex-col justify-center items-center") {
+                                            p (class="text-lg leading-8 text-gray-700"){"Well, you know, man, like whatever it is you are looking for ain't here."}
+                                            p (class="text-lg leading-8 text-gray-700"){"Dave's not here, either."}
+                                        }
+                                    }
+                                })
                             }
                         }
-
                     }
+
                 }
-            )
-        }
-    });
+            }
+        )
+    }
+}
+
+fn main() {
+    console_error_panic_hook::set_once();
+    console_log::init_with_level(log::Level::Debug).unwrap();
+
+    sycamore::render(|cx| view! { cx, App {} });
 }
