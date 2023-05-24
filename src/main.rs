@@ -107,8 +107,8 @@ struct TabStateData {
 impl TabStateData {
     fn new() -> Self {
         Self {
-            selected_anchor_classes: "bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-sm font-medium hover:bg-sky-100 focus:z-10",
-            unselected_anchor_classes: "bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-sm font-medium hover:bg-sky-100 focus:z-10",
+            selected_anchor_classes: "bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10",
+            unselected_anchor_classes: "bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10",
             selected_span_classes: "bg-pink-500 absolute inset-x-0 bottom-0 h-0.5",
             unselected_span_classes: "bg-transparent absolute inset-x-0 bottom-0 h-0.5",
         }
