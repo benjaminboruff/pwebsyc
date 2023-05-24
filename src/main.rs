@@ -1,10 +1,13 @@
 use components::about::About;
-use components::card::Card;
 use components::contact::Contact;
 use components::hero::Hero;
 use components::nav::Nav;
+use components::projects::Projects;
+use reqwasm::http::Request;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use sycamore::prelude::*;
+use sycamore::suspense::Suspense;
 use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
@@ -104,8 +107,8 @@ struct TabStateData {
 impl TabStateData {
     fn new() -> Self {
         Self {
-            selected_anchor_classes: "bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-sm font-medium hover:bg-sky-100 focus:z-10",
-            unselected_anchor_classes: "bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-sm font-medium hover:bg-sky-100 focus:z-10",
+            selected_anchor_classes: "bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10",
+            unselected_anchor_classes: "bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10",
             selected_span_classes: "bg-pink-500 absolute inset-x-0 bottom-0 h-0.5",
             unselected_span_classes: "bg-transparent absolute inset-x-0 bottom-0 h-0.5",
         }
@@ -190,88 +193,132 @@ enum AppData {
     ContactPage(Page),
 }
 
-fn main() {
-    sycamore::render(|cx| {
-        // Site data state setup
-        let site_data = SiteData::builder(
-            "https://www.facebook.com/BHBoruff/",
-            "https://www.linkedin.com/in/benjaminboruff/",
-            "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
-            "https://github.com/benjaminboruff",
-        );
+// API that counts visits to the web-page
+const API_BASE_URL: &str = "https://api.github.com/users/benjaminboruff/repos";
 
-        // Nav state setup
-        let select_state = create_signal(cx, SelectState("/"));
-        provide_context_ref(cx, select_state);
-        let projects_selected = create_signal(cx, ProjectSelected(true));
-        provide_context_ref(cx, projects_selected);
-        let about_selected = create_signal(cx, AboutSelected(false));
-        provide_context_ref(cx, about_selected);
-        let contact_selected = create_signal(cx, ContactSelected(false));
-        provide_context_ref(cx, contact_selected);
-        let tab_state_data = TabStateData::new();
-        let tab_state_data_ref = create_ref(cx, tab_state_data);
-        provide_context_ref(cx, tab_state_data_ref);
-        let current_tab_state =
-            create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
-        provide_context_ref(cx, current_tab_state);
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Repository {
+    name: String,
+    html_url: String,
+    description: Option<String>,
+}
 
-        // static app data setup for access by components
-        let projects_page = Page::builder("Projects", "/", true);
-        let about_page = Page::builder("About", "/about", false);
-        let contact_page = Page::builder("Contact", "/contact", false);
-        let mut static_app_data = HashMap::new();
-        static_app_data.insert("site_data", AppData::SiteData(site_data));
-        static_app_data.insert("projects_page", AppData::ProjectsPage(projects_page));
-        static_app_data.insert("about_page", AppData::AboutPage(about_page));
-        static_app_data.insert("contact_page", AppData::ContactPage(contact_page));
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[serde(transparent)]
+struct Repositories {
+    repositories: Vec<Repository>,
+}
 
-        let app_state_ref = create_ref(cx, static_app_data);
-        provide_context_ref(cx, app_state_ref);
+async fn fetch_all_projects<G: Html>() -> Result<Repositories, reqwasm::Error> {
+    let url = format!("{}{}", API_BASE_URL, "?per_page=100");
+    let resp = Request::get(&url).send().await?;
 
-        view! { cx,
-            Router(
-                integration=HistoryIntegration::new(),
-                view=|cx, route: &ReadSignal<AppRoutes>| {
-                    let count = create_signal(cx, vec![1,2,3,4]); // placeholder for project data
-                    view! { cx,
-                        div(class="app min-h-screen bg-sky-400") {
-                            div(class="text-gray-900 font-sans") {
-                                Hero{}
-                                Nav{}
-                                div(class="container p-4 mx-auto"){
-                                    (match route.get().as_ref() {
-                                        AppRoutes::Index => view! {cx, // Projects
-                                                Keyed(
-                                                    iterable=count,
-                                                    view=|cx, x| view! { cx,
-                                                        Card(item=x){}
-                                                    },
-                                                    key=|x| *x,
-                                                )
-                                        },
-                                        AppRoutes::About => view!{cx,
-                                            div(class="flex flex-col justify-center items-center") {
-                                                About{}
-                                            }
-                                        },
-                                        AppRoutes::Contact => view!{cx,
-                                            Contact{}
-                                        },
-                                        AppRoutes::NotFound => view! {cx,
-                                            div(class="flex flex-col justify-center items-center") {
-                                                p (class="text-lg leading-8 text-gray-700"){"Well, you know, man, like whatever it is you are looking for ain't here."}
-                                                p (class="text-lg leading-8 text-gray-700"){"Dave's not here, either."}
+    let resp_str = resp.text().await?;
+    let repositories: Repositories = serde_json::from_str(&resp_str.as_str())?;
+    Ok(repositories)
+}
+
+#[component]
+async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
+    // Site data state setup
+    let site_data = SiteData::builder(
+        "https://www.facebook.com/BHBoruff/",
+        "https://www.linkedin.com/in/benjaminboruff/",
+        "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
+        "https://github.com/benjaminboruff",
+    );
+
+    // Nav state setup
+    let select_state = create_signal(cx, SelectState("/"));
+    provide_context_ref(cx, select_state);
+    let projects_selected = create_signal(cx, ProjectSelected(true));
+    provide_context_ref(cx, projects_selected);
+    let about_selected = create_signal(cx, AboutSelected(false));
+    provide_context_ref(cx, about_selected);
+    let contact_selected = create_signal(cx, ContactSelected(false));
+    provide_context_ref(cx, contact_selected);
+    let tab_state_data = TabStateData::new();
+    let tab_state_data_ref = create_ref(cx, tab_state_data);
+    provide_context_ref(cx, tab_state_data_ref);
+    let current_tab_state =
+        create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
+    provide_context_ref(cx, current_tab_state);
+
+    // static app data setup for access by components
+    let projects_page = Page::builder("Projects", "/", true);
+    let about_page = Page::builder("About", "/about", false);
+    let contact_page = Page::builder("Contact", "/contact", false);
+    let mut static_app_data = HashMap::new();
+    static_app_data.insert("site_data", AppData::SiteData(site_data));
+    static_app_data.insert("projects_page", AppData::ProjectsPage(projects_page));
+    static_app_data.insert("about_page", AppData::AboutPage(about_page));
+    static_app_data.insert("contact_page", AppData::ContactPage(contact_page));
+
+    let app_state_ref = create_ref(cx, static_app_data);
+    provide_context_ref(cx, app_state_ref);
+
+    // fetch github data for projects component
+    let github = fetch_all_projects::<G>().await.unwrap_or_default();
+    let mut repos: Vec<Repository> = github.repositories;
+    const TOP_SIX_REPOS: &[&str] = &[
+        "minigrep",
+        "blasteroids",
+        "calculator",
+        "calculator2",
+        "pomodoro",
+        "pwebsyc",
+    ];
+    // only keep the repos that are included in the array of top six repos
+    repos.retain(|repo| TOP_SIX_REPOS.contains(&repo.name.as_str()));
+    let github_repos = create_signal(cx, repos);
+    provide_context_ref(cx, github_repos);
+
+    view! { cx,
+        Router(
+            integration=HistoryIntegration::new(),
+            view=move |cx, route: &ReadSignal<AppRoutes>| {
+                view! { cx,
+                    div(class="app min-h-screen bg-sky-400") {
+                        div(class="text-gray-900 font-sans") {
+                            Hero{}
+                            Nav{}
+                            div(class="container p-4 mx-auto"){
+                                (match route.get().as_ref() {
+                                    AppRoutes::Index => view! {cx, // Projects
+                                        div {
+                                            Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
+                                                Projects{}
                                             }
                                         }
-                                    })
-                                }
+                                    },
+                                    AppRoutes::About => view!{cx,
+                                        div(class="flex flex-col justify-center items-center") {
+                                            About{}
+                                        }
+                                    },
+                                    AppRoutes::Contact => view!{cx,
+                                        Contact{}
+                                    },
+                                    AppRoutes::NotFound => view! {cx,
+                                        div(class="flex flex-col justify-center items-center") {
+                                            p (class="text-lg leading-8 text-gray-700"){"Well, you know, man, like whatever it is you are looking for ain't here."}
+                                            p (class="text-lg leading-8 text-gray-700"){"Dave's not here, either."}
+                                        }
+                                    }
+                                })
                             }
                         }
-
                     }
+
                 }
-            )
-        }
-    });
+            }
+        )
+    }
+}
+
+fn main() {
+    console_error_panic_hook::set_once();
+    console_log::init_with_level(log::Level::Debug).unwrap();
+
+    sycamore::render(|cx| view! { cx, App {} });
 }
