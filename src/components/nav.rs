@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use sycamore::prelude::*;
-use sycamore::web::html::ev::change;
 use sycamore_router::navigate;
 
 use crate::AboutSelected;
