@@ -229,8 +229,8 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
     );
 
     // Nav state setup
-    let select_state = create_signal(cx, SelectState("/"));
-    provide_context_ref(cx, select_state);
+    // let select_state = create_signal(cx, SelectState("/"));
+    // provide_context_ref(cx, select_state);
     let projects_selected = create_signal(cx, ProjectSelected(true));
     provide_context_ref(cx, projects_selected);
     let about_selected = create_signal(cx, AboutSelected(false));
