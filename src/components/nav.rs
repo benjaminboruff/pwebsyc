@@ -1,15 +1,14 @@
-use std::collections::HashMap;
-use sycamore::prelude::*;
-use sycamore_router::navigate;
-
 use crate::AboutSelected;
 use crate::AppData;
 use crate::ContactSelected;
 use crate::CurrentTabState;
 use crate::Page;
 use crate::ProjectSelected;
-use crate::SelectState;
 use crate::TabStateData;
+// use log::info;
+use std::collections::HashMap;
+use sycamore::prelude::*;
+use sycamore_router::navigate;
 
 #[component]
 pub fn Nav<G: Html>(cx: Scope) -> View<G> {
@@ -36,7 +35,6 @@ pub fn Nav<G: Html>(cx: Scope) -> View<G> {
         Page::new()
     };
 
-    let select_state: &Signal<SelectState> = use_context(cx);
     let projects_selected: &Signal<ProjectSelected> = use_context(cx);
     let about_selected: &Signal<AboutSelected> = use_context(cx);
     let contact_selected: &Signal<ContactSelected> = use_context(cx);
@@ -48,36 +46,35 @@ pub fn Nav<G: Html>(cx: Scope) -> View<G> {
         about_selected.set(AboutSelected(false));
         contact_selected.set(ContactSelected(false));
         tab_state.set(tab_state.get().select_project(&tab_state_data));
-        select_state.set(SelectState("/"));
     };
     let click_about_tab_or_option = move || {
         projects_selected.set(ProjectSelected(false));
         about_selected.set(AboutSelected(true));
         contact_selected.set(ContactSelected(false));
         tab_state.set(tab_state.get().select_about(&tab_state_data));
-        select_state.set(SelectState("/about"));
     };
     let click_contact_tab_or_option = move || {
         projects_selected.set(ProjectSelected(false));
         about_selected.set(AboutSelected(false));
         contact_selected.set(ContactSelected(true));
         tab_state.set(tab_state.get().select_contact(&tab_state_data));
-        select_state.set(SelectState("/contact"));
     };
+    let select_value = create_signal(cx, String::new());
+    select_value.set("/".to_string());
 
     // set initial route - this resets the rout to match the default tab upon page refresh
     // which is typically the root / to list all the projects
-    navigate(select_state.get().path());
+    navigate(select_value.get().as_str());
 
     view! {cx,
         div {
             // select element with options when viewed on small devices
             div(class="sm:hidden") {
                 label(for="tabs", class="sr-only"){ "Select a tab" }
-                select(on:click=|_| {navigate(select_state.get().path())}, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
-                    option(selected=projects_selected.get().value(), on:click=move |_| { click_projects_tab_or_option() }) { (projects_page.name) }
-                    option(selected=about_selected.get().value(), on:click=move |_| { click_about_tab_or_option() }) { (about_page.name) }
-                    option(selected=contact_selected.get().value(), on:click=move |_| { click_contact_tab_or_option()}) { (contact_page.name) }
+                select(on:change=move |_| {navigate(select_value.get().as_str())}, bind:value=select_value, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
+                    option(selected=projects_selected.get().value(), value="/", on:click=move |_| { click_projects_tab_or_option() }) { (projects_page.name) }
+                    option(selected=about_selected.get().value(), value="/about", on:click=move |_| { click_about_tab_or_option() }) { (about_page.name) }
+                    option(selected=contact_selected.get().value(), value="/contact",on:click=move |_| { click_contact_tab_or_option()}) { (contact_page.name) }
 
                 }
             }
