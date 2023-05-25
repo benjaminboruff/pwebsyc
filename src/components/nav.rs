@@ -5,7 +5,7 @@ use crate::CurrentTabState;
 use crate::Page;
 use crate::ProjectSelected;
 use crate::TabStateData;
-use log::info;
+// use log::info;
 use std::collections::HashMap;
 use sycamore::prelude::*;
 use sycamore_router::navigate;
@@ -59,19 +59,19 @@ pub fn Nav<G: Html>(cx: Scope) -> View<G> {
         contact_selected.set(ContactSelected(true));
         tab_state.set(tab_state.get().select_contact(&tab_state_data));
     };
-    let value = create_signal(cx, String::new());
-    value.set("/".to_string());
+    let select_value = create_signal(cx, String::new());
+    select_value.set("/".to_string());
 
     // set initial route - this resets the rout to match the default tab upon page refresh
     // which is typically the root / to list all the projects
-    navigate(value.get().as_str());
+    navigate(select_value.get().as_str());
 
     view! {cx,
         div {
             // select element with options when viewed on small devices
             div(class="sm:hidden") {
                 label(for="tabs", class="sr-only"){ "Select a tab" }
-                select(on:change=move |_| {navigate(value.get().as_str()); info!("{}", value)}, bind:value=value, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
+                select(on:change=move |_| {navigate(select_value.get().as_str())}, bind:value=select_value, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
                     option(selected=projects_selected.get().value(), value="/", on:click=move |_| { click_projects_tab_or_option() }) { (projects_page.name) }
                     option(selected=about_selected.get().value(), value="/about", on:click=move |_| { click_about_tab_or_option() }) { (about_page.name) }
                     option(selected=contact_selected.get().value(), value="/contact",on:click=move |_| { click_contact_tab_or_option()}) { (contact_page.name) }
