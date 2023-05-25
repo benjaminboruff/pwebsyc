@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use sycamore::prelude::*;
+use sycamore::web::html::ev::change;
 use sycamore_router::navigate;
 
 use crate::AboutSelected;
@@ -74,7 +75,7 @@ pub fn Nav<G: Html>(cx: Scope) -> View<G> {
             // select element with options when viewed on small devices
             div(class="sm:hidden") {
                 label(for="tabs", class="sr-only"){ "Select a tab" }
-                select(on:click=|_| {navigate(select_state.get().path())}, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
+                select(on:change=|_| {navigate(select_state.get().path())}, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
                     option(selected=projects_selected.get().value(), on:click=move |_| { click_projects_tab_or_option() }) { (projects_page.name) }
                     option(selected=about_selected.get().value(), on:click=move |_| { click_about_tab_or_option() }) { (about_page.name) }
                     option(selected=contact_selected.get().value(), on:click=move |_| { click_contact_tab_or_option()}) { (contact_page.name) }
