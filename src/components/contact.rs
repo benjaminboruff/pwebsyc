@@ -16,7 +16,7 @@ pub fn Contact<G: Html>(cx: Scope) -> View<G> {
     };
 
     view! {cx,
-        div (class="flex flex-col justify-center items-center"){
+        div (class="flex flex-col justify-center items-center my-4"){
             div(class="prose") {
                 p (class="text-lg leading-8 text-gray-600"){"There are various ways to contact me. Please check-out the following sites for my email address and additional information. "}
             }
