@@ -3,12 +3,13 @@ use components::contact::Contact;
 use components::hero::Hero;
 use components::nav::Nav;
 use components::projects::Projects;
+use log::info;
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use sycamore::prelude::*;
 use sycamore::suspense::Suspense;
-use sycamore_router::{HistoryIntegration, Route, Router};
+use sycamore_router::{HistoryIntegration, Integration, Route, Router};
 
 mod components;
 
@@ -67,6 +68,8 @@ impl Page {
         }
     }
 }
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct TabRoute(&'static str);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct ProjectSelected(bool); // state for the project selected attribute
@@ -264,6 +267,10 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
     let github_repos = create_signal(cx, repos);
     provide_context_ref(cx, github_repos);
 
+    // router path for use in Nav{} to sync tabs with browser route
+    let router_path = create_signal(cx, TabRoute("/about"));
+    provide_context_ref(cx, router_path);
+
     view! { cx,
         Router(
             integration=HistoryIntegration::new(),
@@ -272,24 +279,40 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                     div(class="app min-h-screen bg-sky-400") {
                         div(class="text-gray-900 font-sans") {
                             Hero{}
-                            Nav{}
                             div(class="container p-4 mx-auto"){
                                 (match route.get().as_ref() {
-                                    AppRoutes::Index => view! {cx, // Projects
-                                        div {
-                                            Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
-                                                Projects{}
+                                    AppRoutes::Index => {
+                                        router_path.set(TabRoute("/"));
+                                        info!("{}", router_path.get().0);
+                                         view! {cx, // Projects
+                                            Nav(route=router_path.get().0){}
+                                            div {
+                                                Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
+                                                    Projects{}
+                                                }
                                             }
                                         }
+                                    }
+                                    ,
+                                    AppRoutes::About => {
+                                        router_path.set(TabRoute("/about"));
+                                        info!("{}", router_path.get().0);
+                                        view! {cx,
+                                            Nav(route=router_path.get().0){}
+                                            div(class="flex flex-col justify-center items-center") {
+                                                About{}
+                                            }
+                                            }
                                     },
-                                    AppRoutes::About => view!{cx,
-                                        div(class="flex flex-col justify-center items-center") {
-                                            About{}
+                                    AppRoutes::Contact =>{
+                                        router_path.set(TabRoute("/contact"));
+                                        info!("{}", router_path.get().0);
+                                        view!{cx,
+                                            Nav(route=router_path.get().0){}
+                                            Contact{}
                                         }
-                                    },
-                                    AppRoutes::Contact => view!{cx,
-                                        Contact{}
-                                    },
+                                     }
+                                    ,
                                     AppRoutes::NotFound => view! {cx,
                                         div(class="flex flex-col justify-center items-center") {
                                             p (class="text-lg leading-8 text-gray-700"){"Well, you know, man, like whatever it is you are looking for ain't here."}
