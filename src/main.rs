@@ -268,7 +268,7 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
     provide_context_ref(cx, github_repos);
 
     // router path for use in Nav{} to sync tabs with browser route
-    let router_path = create_signal(cx, TabRoute("/about"));
+    let router_path = create_signal(cx, TabRoute("/"));
     provide_context_ref(cx, router_path);
 
     view! { cx,

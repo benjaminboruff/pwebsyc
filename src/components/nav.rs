@@ -68,12 +68,6 @@ pub fn Nav<G: Html>(cx: Scope, props: NavProps) -> View<G> {
     let select_value = create_signal(cx, String::new());
     select_value.set("/".to_string());
 
-    // set initial route - this resets the rout to match the default tab upon page refresh
-    // which is typically the root / to list all the projects
-    navigate(select_value.get().as_str());
-
-    //let tab_route: &Signal<TabRoute> = use_context(cx);
-
     match props.route {
         "/" => view! {cx,
             div {
