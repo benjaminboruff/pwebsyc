@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use sycamore::prelude::*;
 use sycamore::suspense::Suspense;
-use sycamore_router::{HistoryIntegration, Integration, Route, Router};
+use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
 
@@ -279,14 +279,14 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                     div(class="app min-h-screen bg-sky-400") {
                         div(class="text-gray-900 font-sans") {
                             Hero{}
-                            div(class="container p-4 mx-auto"){
+                            div {
                                 (match route.get().as_ref() {
                                     AppRoutes::Index => {
                                         router_path.set(TabRoute("/"));
                                         info!("{}", router_path.get().0);
                                          view! {cx, // Projects
                                             Nav(route=router_path.get().0){}
-                                            div {
+                                            div(class="container mx-auto p-4") {
                                                 Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
                                                     Projects{}
                                                 }

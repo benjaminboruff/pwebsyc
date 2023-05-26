@@ -4,7 +4,6 @@ use crate::ContactSelected;
 use crate::CurrentTabState;
 use crate::Page;
 use crate::ProjectSelected;
-use crate::TabRoute;
 use crate::TabStateData;
 // use log::info;
 use std::collections::HashMap;
@@ -84,7 +83,7 @@ pub fn Nav<G: Html>(cx: Scope, props: NavProps) -> View<G> {
                 // tab elements when viewed on medium or larger devices
                 div(class="hidden sm:block") {
                     nav(class="isolate flex divide-x divide-gray-300 shadow-md", aria-label="Tabs") {
-                        a(href=(projects_page.route), class="bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10", aria-current="page") {
+                        a(href=(projects_page.route), class="bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10", aria-current="projects") {
                             span { (projects_page.name) }
                             span(aria-hidden="true", class="bg-pink-500 absolute inset-x-0 bottom-0 h-0.5") {}
                         }
@@ -115,11 +114,11 @@ pub fn Nav<G: Html>(cx: Scope, props: NavProps) -> View<G> {
                 // tab elements when viewed on medium or larger devices
                 div(class="hidden sm:block") {
                     nav(class="isolate flex divide-x divide-gray-300 shadow-md", aria-label="Tabs") {
-                        a(href=(projects_page.route), class="bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10", aria-current="page") {
+                        a(href=(projects_page.route), class="bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10") {
                             span { (projects_page.name) }
                             span(aria-hidden="true", class="bg-transparent absolute inset-x-0 bottom-0 h-0.5") {}
                         }
-                        a(href=(about_page.route), class="bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10") {
+                        a(href=(about_page.route), class="bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10", aria-current="about") {
                             span { (about_page.name) }
                             span(aria-hidden="true", class="bg-pink-500 absolute inset-x-0 bottom-0 h-0.5") {}
                         }
@@ -154,7 +153,7 @@ pub fn Nav<G: Html>(cx: Scope, props: NavProps) -> View<G> {
                             span { (about_page.name) }
                             span(aria-hidden="true", class="bg-transparent absolute inset-x-0 bottom-0 h-0.5") {}
                         }
-                        a(href=(contact_page.route), class="bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10") {
+                        a(href=(contact_page.route), class="bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10", aria-current="contact") {
                             span { (contact_page.name) }
                             span(aria-hidden="true", class="bg-pink-500 absolute inset-x-0 bottom-0 h-0.5") {}
                         }
