@@ -1,5 +1,5 @@
 use crate::components::card::Card;
-use log::info;
+// use log::info;
 use sycamore::prelude::*;
 
 use crate::Repository;
@@ -7,7 +7,7 @@ use crate::Repository;
 #[component]
 pub fn Projects<G: Html>(cx: Scope) -> View<G> {
     let repos_data: &Signal<Vec<Repository>> = use_context(cx);
-    info!("{:?}", repos_data);
+    // info!("{:?}", repos_data);
     view! {cx,
         div(class="container") {
             Keyed(

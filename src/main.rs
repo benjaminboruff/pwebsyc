@@ -3,6 +3,7 @@ use components::contact::Contact;
 use components::hero::Hero;
 use components::nav::Nav;
 use components::projects::Projects;
+use log::info;
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -52,13 +53,6 @@ struct Page {
     selected: bool,
 }
 impl Page {
-    fn new() -> Self {
-        Self {
-            name: "Default",
-            route: "/",
-            selected: false,
-        }
-    }
     fn builder(name: &'static str, route: &'static str, selected: bool) -> Self {
         Self {
             name,
@@ -67,102 +61,10 @@ impl Page {
         }
     }
 }
-
 #[derive(Clone, Copy, PartialEq, Eq)]
-struct ProjectSelected(bool); // state for the project selected attribute
-impl ProjectSelected {
-    pub fn value(&self) -> bool {
-        self.0
-    }
-}
+struct TabRoute(&'static str); // for syncing the router with the nav bar tabs
 #[derive(Clone, Copy, PartialEq, Eq)]
-struct AboutSelected(bool); // state for the select/option elements for small screens
-impl AboutSelected {
-    pub fn value(&self) -> bool {
-        self.0
-    }
-}
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct ContactSelected(bool); // state for the select/option elements for small screens
-impl ContactSelected {
-    pub fn value(&self) -> bool {
-        self.0
-    }
-}
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct TabStateData {
-    // tailwindcss class data for the Nav component's tabs
-    selected_anchor_classes: &'static str,
-    unselected_anchor_classes: &'static str,
-    selected_span_classes: &'static str,
-    unselected_span_classes: &'static str,
-}
-impl TabStateData {
-    fn new() -> Self {
-        Self {
-            selected_anchor_classes: "bg-gray-100 text-gray-900 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10",
-            unselected_anchor_classes: "bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10",
-            selected_span_classes: "bg-pink-500 absolute inset-x-0 bottom-0 h-0.5",
-            unselected_span_classes: "bg-transparent absolute inset-x-0 bottom-0 h-0.5",
-        }
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct CurrentTabState {
-    // state to hold the tailwindcss classes for the currently selected and unselected tabs
-    project_anchor_classes: &'static str,
-    project_span_classes: &'static str,
-    about_anchor_classes: &'static str,
-    about_span_classes: &'static str,
-    contact_anchor_classes: &'static str,
-    contact_span_classes: &'static str,
-}
-impl CurrentTabState {
-    fn new() -> Self {
-        Self {
-            project_anchor_classes: "",
-            project_span_classes: "",
-            about_anchor_classes: "",
-            about_span_classes: "",
-            contact_anchor_classes: "",
-            contact_span_classes: "",
-        }
-    }
-    fn select_project(&self, tab_state_data: &TabStateData) -> Self {
-        // classes to style the currently selected Projects tab and unselected About/Contact tabs
-        Self {
-            project_anchor_classes: tab_state_data.selected_anchor_classes,
-            project_span_classes: tab_state_data.selected_span_classes,
-            about_anchor_classes: tab_state_data.unselected_anchor_classes,
-            about_span_classes: tab_state_data.unselected_span_classes,
-            contact_anchor_classes: tab_state_data.unselected_anchor_classes,
-            contact_span_classes: tab_state_data.unselected_span_classes,
-        }
-    }
-    fn select_about(&self, tab_state_data: &TabStateData) -> Self {
-        // classes to style the currently selected About tab and unselected Projects/Contact tabs
-        Self {
-            project_anchor_classes: tab_state_data.unselected_anchor_classes,
-            project_span_classes: tab_state_data.unselected_span_classes,
-            about_anchor_classes: tab_state_data.selected_anchor_classes,
-            about_span_classes: tab_state_data.selected_span_classes,
-            contact_anchor_classes: tab_state_data.unselected_anchor_classes,
-            contact_span_classes: tab_state_data.unselected_span_classes,
-        }
-    }
-    fn select_contact(&self, tab_state_data: &TabStateData) -> Self {
-        // classes to style the currently selected Contact tab and unselected Projects/About tabs
-        Self {
-            project_anchor_classes: tab_state_data.unselected_anchor_classes,
-            project_span_classes: tab_state_data.unselected_span_classes,
-            about_anchor_classes: tab_state_data.unselected_anchor_classes,
-            about_span_classes: tab_state_data.unselected_span_classes,
-            contact_anchor_classes: tab_state_data.selected_anchor_classes,
-            contact_span_classes: tab_state_data.selected_span_classes,
-        }
-    }
-}
+struct SelectionValue(&'static str); // for syncing the selected option with the nav bar selection
 
 // app routes
 #[derive(Route)]
@@ -186,7 +88,7 @@ enum AppData {
     ContactPage(Page),
 }
 
-// API that counts visits to the web-page
+// github api to retrieve all my repo data
 const API_BASE_URL: &str = "https://api.github.com/users/benjaminboruff/repos";
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, Hash)]
@@ -221,20 +123,6 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
         "https://github.com/benjaminboruff",
     );
 
-    // Nav state setup
-    let projects_selected = create_signal(cx, ProjectSelected(true));
-    provide_context_ref(cx, projects_selected);
-    let about_selected = create_signal(cx, AboutSelected(false));
-    provide_context_ref(cx, about_selected);
-    let contact_selected = create_signal(cx, ContactSelected(false));
-    provide_context_ref(cx, contact_selected);
-    let tab_state_data = TabStateData::new();
-    let tab_state_data_ref = create_ref(cx, tab_state_data);
-    provide_context_ref(cx, tab_state_data_ref);
-    let current_tab_state =
-        create_signal(cx, CurrentTabState::new().select_project(&tab_state_data));
-    provide_context_ref(cx, current_tab_state);
-
     // static app data setup for access by components
     let projects_page = Page::builder("Projects", "/", true);
     let about_page = Page::builder("About", "/about", false);
@@ -264,6 +152,13 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
     let github_repos = create_signal(cx, repos);
     provide_context_ref(cx, github_repos);
 
+    // router path for use in Nav{} to sync tabs with browser route
+    let router_path = create_signal(cx, TabRoute("/"));
+    provide_context_ref(cx, router_path);
+    // selection value for use in Nav{} to sync selection with selected option
+    let selection_value = create_signal(cx, SelectionValue("Projects"));
+    provide_context_ref(cx, selection_value);
+
     view! { cx,
         Router(
             integration=HistoryIntegration::new(),
@@ -272,24 +167,44 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                     div(class="app min-h-screen bg-sky-400") {
                         div(class="text-gray-900 font-sans") {
                             Hero{}
-                            Nav{}
-                            div(class="container p-4 mx-auto"){
+                            div {
                                 (match route.get().as_ref() {
-                                    AppRoutes::Index => view! {cx, // Projects
-                                        div {
-                                            Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
-                                                Projects{}
+                                    AppRoutes::Index => {
+                                        router_path.set(TabRoute("/"));
+                                        info!("{}", router_path.get().0);
+                                        selection_value.set(SelectionValue("Projects"));
+                                        info!("{}", selection_value.get().0);
+                                         view! {cx, // Projects
+                                            Nav(route=router_path.get().0, select_value=selection_value.get().0){}
+                                            div(class="container mx-auto p-4") {
+                                                Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
+                                                    Projects{}
+                                                }
                                             }
                                         }
+                                    }
+                                    ,
+                                    AppRoutes::About => {
+                                        router_path.set(TabRoute("/about"));
+                                        info!("{}", router_path.get().0);
+                                        selection_value.set(SelectionValue("About"));
+                                        info!("{}", selection_value.get().0);
+                                        view! {cx,
+                                                Nav(route=router_path.get().0, select_value=selection_value.get().0){}
+                                                About{}
+                                            }
                                     },
-                                    AppRoutes::About => view!{cx,
-                                        div(class="flex flex-col justify-center items-center") {
-                                            About{}
+                                    AppRoutes::Contact =>{
+                                        router_path.set(TabRoute("/contact"));
+                                        info!("{}", router_path.get().0);
+                                        selection_value.set(SelectionValue("Contact"));
+                                        info!("{}", selection_value.get().0);
+                                        view!{cx,
+                                            Nav(route=router_path.get().0, select_value=selection_value.get().0){}
+                                            Contact{}
                                         }
-                                    },
-                                    AppRoutes::Contact => view!{cx,
-                                        Contact{}
-                                    },
+                                     }
+                                    ,
                                     AppRoutes::NotFound => view! {cx,
                                         div(class="flex flex-col justify-center items-center") {
                                             p (class="text-lg leading-8 text-gray-700"){"Well, you know, man, like whatever it is you are looking for ain't here."}

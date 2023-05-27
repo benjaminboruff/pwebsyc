@@ -483,10 +483,6 @@ imports.wbg.__wbg_closest_ccb736ba8ab76b4e = function() { return handleError(fun
     const ret = getObject(arg0).closest(v0);
     return isLikeNone(ret) ? 0 : addHeapObject(ret);
 }, arguments) };
-imports.wbg.__wbg_removeAttribute_77e4f460fd0fde34 = function() { return handleError(function (arg0, arg1, arg2) {
-    var v0 = getCachedStringFromWasm0(arg1, arg2);
-    getObject(arg0).removeAttribute(v0);
-}, arguments) };
 imports.wbg.__wbg_setAttribute_1b177bcd399b9b56 = function() { return handleError(function (arg0, arg1, arg2, arg3, arg4) {
     var v0 = getCachedStringFromWasm0(arg1, arg2);
     var v1 = getCachedStringFromWasm0(arg3, arg4);
@@ -671,16 +667,16 @@ imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
 imports.wbg.__wbindgen_throw = function(arg0, arg1) {
     throw new Error(getStringFromWasm0(arg0, arg1));
 };
-imports.wbg.__wbindgen_closure_wrapper502 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 200, __wbg_adapter_20);
+imports.wbg.__wbindgen_closure_wrapper446 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 168, __wbg_adapter_20);
     return addHeapObject(ret);
 };
-imports.wbg.__wbindgen_closure_wrapper528 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 210, __wbg_adapter_23);
+imports.wbg.__wbindgen_closure_wrapper472 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 178, __wbg_adapter_23);
     return addHeapObject(ret);
 };
-imports.wbg.__wbindgen_closure_wrapper693 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 259, __wbg_adapter_26);
+imports.wbg.__wbindgen_closure_wrapper636 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 227, __wbg_adapter_26);
     return addHeapObject(ret);
 };
 
@@ -721,7 +717,7 @@ async function __wbg_init(input) {
     if (wasm !== undefined) return wasm;
 
     if (typeof input === 'undefined') {
-        input = new URL('pwebsyc-d113a42332b5ddfc_bg.wasm', import.meta.url);
+        input = new URL('pwebsyc-9153e3244e5ae7ca_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 
