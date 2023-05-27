@@ -1,10 +1,5 @@
-use crate::AboutSelected;
 use crate::AppData;
-use crate::ContactSelected;
-use crate::CurrentTabState;
 use crate::Page;
-use crate::ProjectSelected;
-use crate::TabStateData;
 // use log::info;
 use std::collections::HashMap;
 use sycamore::prelude::*;
@@ -40,32 +35,8 @@ pub fn Nav<G: Html>(cx: Scope, props: NavProps) -> View<G> {
         Page::new()
     };
 
-    let projects_selected: &Signal<ProjectSelected> = use_context(cx);
-    let about_selected: &Signal<AboutSelected> = use_context(cx);
-    let contact_selected: &Signal<ContactSelected> = use_context(cx);
-    let tab_state_data: &TabStateData = use_context(cx);
-    let tab_state: &Signal<CurrentTabState> = use_context(cx);
-
-    let click_projects_tab_or_option = move || {
-        projects_selected.set(ProjectSelected(true));
-        about_selected.set(AboutSelected(false));
-        contact_selected.set(ContactSelected(false));
-        tab_state.set(tab_state.get().select_project(&tab_state_data));
-    };
-    let click_about_tab_or_option = move || {
-        projects_selected.set(ProjectSelected(false));
-        about_selected.set(AboutSelected(true));
-        contact_selected.set(ContactSelected(false));
-        tab_state.set(tab_state.get().select_about(&tab_state_data));
-    };
-    let click_contact_tab_or_option = move || {
-        projects_selected.set(ProjectSelected(false));
-        about_selected.set(AboutSelected(false));
-        contact_selected.set(ContactSelected(true));
-        tab_state.set(tab_state.get().select_contact(&tab_state_data));
-    };
     let select_value = create_signal(cx, String::new());
-    select_value.set("/".to_string());
+    select_value.set("".to_string());
 
     match props.route {
         "/" => view! {cx,
@@ -74,9 +45,9 @@ pub fn Nav<G: Html>(cx: Scope, props: NavProps) -> View<G> {
                 div(class="sm:hidden") {
                     label(for="tabs", class="sr-only"){ "Select a tab" }
                     select(on:change=move |_| {navigate(select_value.get().as_str())}, bind:value=select_value, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
-                        option(selected=projects_selected.get().value(), value="/", on:click=move |_| { click_projects_tab_or_option() }) { (projects_page.name) }
-                        option(selected=about_selected.get().value(), value="/about", on:click=move |_| { click_about_tab_or_option() }) { (about_page.name) }
-                        option(selected=contact_selected.get().value(), value="/contact",on:click=move |_| { click_contact_tab_or_option()}) { (contact_page.name) }
+                        option(selected=true, value="/") { (projects_page.name) }
+                        option(selected=false, value="/about") { (about_page.name) }
+                        option(selected=false, value="/contact") { (contact_page.name) }
 
                     }
                 }
@@ -105,9 +76,9 @@ pub fn Nav<G: Html>(cx: Scope, props: NavProps) -> View<G> {
                 div(class="sm:hidden") {
                     label(for="tabs", class="sr-only"){ "Select a tab" }
                     select(on:change=move |_| {navigate(select_value.get().as_str())}, bind:value=select_value, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
-                        option(selected=projects_selected.get().value(), value="/", on:click=move |_| { click_projects_tab_or_option() }) { (projects_page.name) }
-                        option(selected=about_selected.get().value(), value="/about", on:click=move |_| { click_about_tab_or_option() }) { (about_page.name) }
-                        option(selected=contact_selected.get().value(), value="/contact",on:click=move |_| { click_contact_tab_or_option()}) { (contact_page.name) }
+                        option(selected=false, value="/") { (projects_page.name) }
+                        option(selected=true, value="/about") { (about_page.name) }
+                        option(selected=false, value="/contact") { (contact_page.name) }
 
                     }
                 }
@@ -136,16 +107,16 @@ pub fn Nav<G: Html>(cx: Scope, props: NavProps) -> View<G> {
                 div(class="sm:hidden") {
                     label(for="tabs", class="sr-only"){ "Select a tab" }
                     select(on:change=move |_| {navigate(select_value.get().as_str())}, bind:value=select_value, id="tabs", name="tabs", class="block w-full border-gray-300 focus:border-pink-500 focus:ring-pink-500") {
-                        option(selected=projects_selected.get().value(), value="/", on:click=move |_| { click_projects_tab_or_option() }) { (projects_page.name) }
-                        option(selected=about_selected.get().value(), value="/about", on:click=move |_| { click_about_tab_or_option() }) { (about_page.name) }
-                        option(selected=contact_selected.get().value(), value="/contact",on:click=move |_| { click_contact_tab_or_option()}) { (contact_page.name) }
+                        option(selected=false, value="/") { (projects_page.name) }
+                        option(selected=false, value="/about") { (about_page.name) }
+                        option(selected=true, value="/contact") { (contact_page.name) }
 
                     }
                 }
                 // tab elements when viewed on medium or larger devices
                 div(class="hidden sm:block") {
                     nav(class="isolate flex divide-x divide-gray-300 shadow-md", aria-label="Tabs") {
-                        a(href=(projects_page.route), class="bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10", aria-current="page") {
+                        a(href=(projects_page.route), class="bg-gray-100 text-gray-400 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden py-4 px-4 text-center text-md font-medium hover:bg-sky-100 focus:z-10") {
                             span { (projects_page.name) }
                             span(aria-hidden="true", class="bg-transparent absolute inset-x-0 bottom-0 h-0.5") {}
                         }
