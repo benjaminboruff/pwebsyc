@@ -207,8 +207,14 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                                     ,
                                     AppRoutes::NotFound => view! {cx,
                                         div(class="flex flex-col justify-center items-center") {
-                                            p (class="text-lg leading-8 text-gray-700"){"Well, you know, man, like whatever it is you are looking for ain't here."}
-                                            p (class="text-lg leading-8 text-gray-700"){"Dave's not here, either."}
+                                            div(class="m-4") {
+                                                p (class="text-lg leading-8 text-gray-700"){"Well, you know, man, like, whatever it is you are looking for ain't here."}
+                                                p (class="text-lg leading-8 text-gray-700"){
+                                                    a(class="underline", href="https://www.youtube.com/watch?v=dX8lZduI8ac") {"Dave's not here"}
+                                                    ", either."
+                                                }
+
+                                            }
                                         }
                                     }
                                 })
