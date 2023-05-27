@@ -53,13 +53,6 @@ struct Page {
     selected: bool,
 }
 impl Page {
-    fn new() -> Self {
-        Self {
-            name: "Default",
-            route: "/",
-            selected: false,
-        }
-    }
     fn builder(name: &'static str, route: &'static str, selected: bool) -> Self {
         Self {
             name,
@@ -69,7 +62,9 @@ impl Page {
     }
 }
 #[derive(Clone, Copy, PartialEq, Eq)]
-struct TabRoute(&'static str); // for syncing the router with the nav bar
+struct TabRoute(&'static str); // for syncing the router with the nav bar tabs
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct SelectionValue(&'static str); // for syncing the selected option with the nav bar selection
 
 // app routes
 #[derive(Route)]
@@ -160,6 +155,9 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
     // router path for use in Nav{} to sync tabs with browser route
     let router_path = create_signal(cx, TabRoute("/"));
     provide_context_ref(cx, router_path);
+    // selection value for use in Nav{} to sync selection with selected option
+    let selection_value = create_signal(cx, SelectionValue("Projects"));
+    provide_context_ref(cx, selection_value);
 
     view! { cx,
         Router(
@@ -174,8 +172,10 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                                     AppRoutes::Index => {
                                         router_path.set(TabRoute("/"));
                                         info!("{}", router_path.get().0);
+                                        selection_value.set(SelectionValue("Projects"));
+                                        info!("{}", selection_value.get().0);
                                          view! {cx, // Projects
-                                            Nav(route=router_path.get().0){}
+                                            Nav(route=router_path.get().0, select_value=selection_value.get().0){}
                                             div(class="container mx-auto p-4") {
                                                 Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
                                                     Projects{}
@@ -187,16 +187,20 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                                     AppRoutes::About => {
                                         router_path.set(TabRoute("/about"));
                                         info!("{}", router_path.get().0);
+                                        selection_value.set(SelectionValue("About"));
+                                        info!("{}", selection_value.get().0);
                                         view! {cx,
-                                                Nav(route=router_path.get().0){}
+                                                Nav(route=router_path.get().0, select_value=selection_value.get().0){}
                                                 About{}
                                             }
                                     },
                                     AppRoutes::Contact =>{
                                         router_path.set(TabRoute("/contact"));
                                         info!("{}", router_path.get().0);
+                                        selection_value.set(SelectionValue("Contact"));
+                                        info!("{}", selection_value.get().0);
                                         view!{cx,
-                                            Nav(route=router_path.get().0){}
+                                            Nav(route=router_path.get().0, select_value=selection_value.get().0){}
                                             Contact{}
                                         }
                                      }
