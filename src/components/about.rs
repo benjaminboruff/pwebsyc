@@ -3,8 +3,8 @@ use sycamore::prelude::*;
 #[component]
 pub fn About<G: Html>(cx: Scope) -> View<G> {
     view! {cx,
-        div(class="container mx-auto my-4") {
-            div (class="flex flex-col justify-center items-center divide-y my-4 mx-6"){
+        div(class="container mx-auto mt-4 pb-4") {
+            div (class="flex flex-col justify-center items-center divide-y mx-6"){
                 div(class="prose  mb-6") {
                     p(class="text-lg leading-8 text-gray-600") {
                         "I am a programmer and a
