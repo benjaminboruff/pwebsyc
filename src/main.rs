@@ -3,64 +3,15 @@ use components::contact::Contact;
 use components::hero::Hero;
 use components::nav::Nav;
 use components::projects::Projects;
-use log::info;
+// use log::info;
 use reqwasm::http::Request;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use sycamore::prelude::*;
 use sycamore::suspense::Suspense;
 use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
 
-// app data structures
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct SiteData {
-    // generic site data that could be used anywhere
-    facebook_url: &'static str,
-    linkedin_url: &'static str,
-    stackoverflow_url: &'static str,
-    github_url: &'static str,
-}
-impl SiteData {
-    fn new() -> Self {
-        Self {
-            facebook_url: "http://facebook.com",
-            linkedin_url: "http://linkedin.com",
-            stackoverflow_url: "http://stackoverflow.com",
-            github_url: "http://github.com",
-        }
-    }
-    fn builder(
-        facebook_url: &'static str,
-        linkedin_url: &'static str,
-        stackoverflow_url: &'static str,
-        github_url: &'static str,
-    ) -> Self {
-        Self {
-            facebook_url,
-            linkedin_url,
-            stackoverflow_url,
-            github_url,
-        }
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct Page {
-    name: &'static str,
-    route: &'static str,
-    selected: bool,
-}
-impl Page {
-    fn builder(name: &'static str, route: &'static str, selected: bool) -> Self {
-        Self {
-            name,
-            route,
-            selected,
-        }
-    }
-}
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct TabRoute(&'static str); // for syncing the router with the nav bar tabs
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -77,15 +28,6 @@ enum AppRoutes {
     Contact,
     #[not_found]
     NotFound,
-}
-
-// static app data
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum AppData {
-    SiteData(SiteData),
-    ProjectsPage(Page),
-    AboutPage(Page),
-    ContactPage(Page),
 }
 
 // github api to retrieve all my repo data
@@ -115,27 +57,6 @@ async fn fetch_all_projects<G: Html>() -> Result<Repositories, reqwasm::Error> {
 
 #[component]
 async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
-    // Site data state setup
-    let site_data = SiteData::builder(
-        "https://www.facebook.com/BHBoruff/",
-        "https://www.linkedin.com/in/benjaminboruff/",
-        "https://stackoverflow.com/users/6026248/benjamin-h-boruff",
-        "https://github.com/benjaminboruff",
-    );
-
-    // static app data setup for access by components
-    let projects_page = Page::builder("Projects", "/", true);
-    let about_page = Page::builder("About", "/about", false);
-    let contact_page = Page::builder("Contact", "/contact", false);
-    let mut static_app_data = HashMap::new();
-    static_app_data.insert("site_data", AppData::SiteData(site_data));
-    static_app_data.insert("projects_page", AppData::ProjectsPage(projects_page));
-    static_app_data.insert("about_page", AppData::AboutPage(about_page));
-    static_app_data.insert("contact_page", AppData::ContactPage(contact_page));
-
-    let app_state_ref = create_ref(cx, static_app_data);
-    provide_context_ref(cx, app_state_ref);
-
     // fetch github data for projects component
     let github = fetch_all_projects::<G>().await.unwrap_or_default();
     let mut repos: Vec<Repository> = github.repositories;
@@ -171,9 +92,9 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                                 (match route.get().as_ref() {
                                     AppRoutes::Index => {
                                         router_path.set(TabRoute("/"));
-                                        info!("{}", router_path.get().0);
+                                        // info!("{}", router_path.get().0);
                                         selection_value.set(SelectionValue("Projects"));
-                                        info!("{}", selection_value.get().0);
+                                        // info!("{}", selection_value.get().0);
                                          view! {cx, // Projects
                                             Nav(route=router_path.get().0, select_value=selection_value.get().0){}
                                             div(class="container mx-auto p-4") {
@@ -186,9 +107,9 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                                     ,
                                     AppRoutes::About => {
                                         router_path.set(TabRoute("/about"));
-                                        info!("{}", router_path.get().0);
+                                        // info!("{}", router_path.get().0);
                                         selection_value.set(SelectionValue("About"));
-                                        info!("{}", selection_value.get().0);
+                                        // info!("{}", selection_value.get().0);
                                         view! {cx,
                                                 Nav(route=router_path.get().0, select_value=selection_value.get().0){}
                                                 About{}
@@ -196,9 +117,9 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                                     },
                                     AppRoutes::Contact =>{
                                         router_path.set(TabRoute("/contact"));
-                                        info!("{}", router_path.get().0);
+                                        // info!("{}", router_path.get().0);
                                         selection_value.set(SelectionValue("Contact"));
-                                        info!("{}", selection_value.get().0);
+                                        // info!("{}", selection_value.get().0);
                                         view!{cx,
                                             Nav(route=router_path.get().0, select_value=selection_value.get().0){}
                                             Contact{}
