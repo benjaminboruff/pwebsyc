@@ -12,10 +12,23 @@ use sycamore_router::{HistoryIntegration, Route, Router};
 
 mod components;
 
+// The tab selection state -- the route determines the styling, and tracking which option in the
+// select element has been chosen
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct TabRoute(&'static str); // for syncing the router with the nav bar tabs
+impl TabRoute {
+    fn path(self) -> &'static str {
+        self.0
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct SelectionValue(&'static str); // for syncing the selected option with the nav bar selection
+impl SelectionValue {
+    fn value(self) -> &'static str {
+        self.0
+    }
+}
 
 // app routes
 #[derive(Route)]
@@ -46,6 +59,7 @@ struct Repositories {
     repositories: Vec<Repository>,
 }
 
+// function that fetches my repo json data on each page load
 async fn fetch_all_projects<G: Html>() -> Result<Repositories, reqwasm::Error> {
     let url = format!("{}{}", API_BASE_URL, "?per_page=100");
     let resp = Request::get(&url).send().await?;
@@ -92,11 +106,11 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                                 (match route.get().as_ref() {
                                     AppRoutes::Index => {
                                         router_path.set(TabRoute("/"));
-                                        // info!("{}", router_path.get().0);
+                                        // info!("{}", router_path.get().path());
                                         selection_value.set(SelectionValue("Projects"));
-                                        // info!("{}", selection_value.get().0);
+                                        // info!("{}", selection_value.get().value());
                                          view! {cx, // Projects
-                                            Nav(route=router_path.get().0, select_value=selection_value.get().0){}
+                                            Nav(route=router_path.get().path(), select_value=selection_value.get().value()){}
                                             div(class="container mx-auto p-4") {
                                                 Suspense(fallback=view! { cx, div(class="flex flex-col justify-center items-center text-lg leading-8 text-gray-700") { "Loading..." } }) {
                                                     Projects{}
@@ -107,21 +121,21 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
                                     ,
                                     AppRoutes::About => {
                                         router_path.set(TabRoute("/about"));
-                                        // info!("{}", router_path.get().0);
+                                        // info!("{}", router_path.get().path());
                                         selection_value.set(SelectionValue("About"));
-                                        // info!("{}", selection_value.get().0);
+                                        // info!("{}", selection_value.get().value());
                                         view! {cx,
-                                                Nav(route=router_path.get().0, select_value=selection_value.get().0){}
+                                                Nav(route=router_path.get().path(), select_value=selection_value.get().value()){}
                                                 About{}
                                             }
                                     },
                                     AppRoutes::Contact =>{
                                         router_path.set(TabRoute("/contact"));
-                                        // info!("{}", router_path.get().0);
+                                        // info!("{}", router_path.get().path());
                                         selection_value.set(SelectionValue("Contact"));
-                                        // info!("{}", selection_value.get().0);
+                                        // info!("{}", selection_value.get().value());
                                         view!{cx,
-                                            Nav(route=router_path.get().0, select_value=selection_value.get().0){}
+                                            Nav(route=router_path.get().path(), select_value=selection_value.get().value()){}
                                             Contact{}
                                         }
                                      }
