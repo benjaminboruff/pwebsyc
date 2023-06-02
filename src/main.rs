@@ -77,7 +77,7 @@ async fn App<'a, G: Html>(cx: Scope<'a>) -> View<G> {
     const TOP_SIX_REPOS: &[&str] = &[
         "minigrep",
         "blasteroids",
-        "calculator",
+        "calculator3",
         "calculator2",
         "pomodoro",
         "pwebsyc",
